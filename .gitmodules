@@ -1,3 +1,6 @@
 [submodule "ast-generator/estree"]
 	path = ast-generator/estree
 	url = https://github.com/estree/estree
+[submodule "esprima"]
+	path = esprima
+	url = https://github.com/jquery/esprima
