@@ -1,0 +1,5 @@
+package escalima
+
+object ECMAScript {
+
+}
