@@ -270,9 +270,9 @@ export function buildScalaAst(spec: Specification, options: Options): string {
 
         fromExpr(src: string, srcOption: string): string {
             if (srcOption) {
-                return `${srcOption}.map(inner => ${this.type.fromExpr("inner", undefined)})`
+                return `${srcOption}.flatMap(_ match { case Js.Null => None; case some => Some(some)}).map(inner => ${this.type.fromExpr("inner", undefined)})`
             } else {
-                return `Option(${src}).map(inner => ${this.type.fromExpr("inner", undefined)})`
+                return `(${src} match { case Js.Null => None; case some => Some(some)}).map(inner => ${this.type.fromExpr("inner", undefined)})`
             }
         }
 
