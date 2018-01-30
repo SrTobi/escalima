@@ -1,0 +1,22 @@
+{
+    "compilerOptions": {
+        "module": "commonjs",
+        "target": "es6",
+        "noImplicitAny": true,
+        "noFallthroughCasesInSwitch": true,
+        "noImplicitThis": true,
+        "noImplicitReturns": true,
+        "strictNullChecks": true,
+        "sourceMap": true,
+        "allowJs": true,
+        "experimentalDecorators": true,
+        "outDir": "dist",
+        "lib": [
+            "es2015",
+            "es2017.object"
+        ]
+    },
+    "exclude": [
+        "node_modules", "dist", "estree-formal"
+    ]
+}
