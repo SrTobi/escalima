@@ -149,7 +149,7 @@ export function buildScalaAst(spec: Specification, options: Options): string {
         abstract inners: Entry[]
 
         abstract asScalaType(): string
-        abstract fromExpr(src: string): string
+        abstract fromExpr(src: string, optionSrc: string | undefined): string
         abstract toExpr(self: string): string
 
         canBeParam(): boolean {
@@ -214,8 +214,8 @@ export function buildScalaAst(spec: Specification, options: Options): string {
             return `Seq[${this.base.asScalaType()}]`
         }
 
-        fromExpr(src: string): string {
-            return `${src}.arr.map(elem => ${this.base.fromExpr("elem")})`
+        fromExpr(src: string, optionSrc: string): string {
+            return `${src}.arr.map(elem => ${this.base.fromExpr("elem", undefined)})`
         }
 
         toExpr(self: string): string {
@@ -268,8 +268,12 @@ export function buildScalaAst(spec: Specification, options: Options): string {
             return `Option[${this.type.asScalaType()}]`
         }
 
-        fromExpr(src: string): string {
-            return `Option(${src}).map(inner => ${this.type.fromExpr("inner")})`
+        fromExpr(src: string, srcOption: string): string {
+            if (srcOption) {
+                return `${srcOption}.map(inner => ${this.type.fromExpr("inner", undefined)})`
+            } else {
+                return `Option(${src}).map(inner => ${this.type.fromExpr("inner", undefined)})`
+            }
         }
 
         toExpr(self: string): string {
@@ -855,7 +859,8 @@ export function buildScalaAst(spec: Specification, options: Options): string {
                 realParams.forEach(([arg, entry,], idx, self) => {
                     const isLast = idx == self.length - 1
                     const value = `_obj("${arg}")`
-                    const svalue = entry.fromExpr(value)
+                    const optValue = `_obj.get("${arg}")`
+                    const svalue = entry.fromExpr(value, optValue)
                     argWriter.println(svalue + (isLast? "" : ","))
                 })
                 argWriter.end()
