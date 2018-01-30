@@ -1,0 +1,9 @@
+#! /bin/sh
+
+cd esprima
+npm install
+npm run compile
+
+cp dist/esprima.js ../escalima/jvm/src/main/resources
+
+
