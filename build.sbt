@@ -20,11 +20,13 @@ lazy val escalima = crossProject.
         libraryDependencies += "com.lihaoyi" %% "upickle" % "0.5.1",
     ).
     jvmSettings(
-        // Add JVM-specific settings here
-        //libraryDependencies += "com.lihaoyi" %% "fastparse" % "1.0.0"
+        libraryDependencies += "org.scalactic" %% "scalactic" % "3.0.4",
+        libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.4" % Test,
+        fork in Test := true,
+        baseDirectory in Test := file(".")
     ).
     jsSettings(
-        // Add JS-specific settings here
+        libraryDependencies += "org.scalatest" %%% "scalatest" % "3.0.0" % "test"
     )
 
 lazy val escalimaJVM = escalima.jvm
@@ -36,6 +38,4 @@ lazy val predef = project
     .settings(
         name := "escalima-tests",
         version := "0.1-SNAPSHOT",
-        libraryDependencies += "org.scalactic" %% "scalactic" % "3.0.4",
-        libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.4" % Test
     )

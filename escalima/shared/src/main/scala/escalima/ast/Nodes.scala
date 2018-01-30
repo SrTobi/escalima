@@ -76,7 +76,7 @@ object SourceLocation {
 		val _obj = src.obj
 
 		new SourceLocation(
-			_obj.get("source").map(inner => inner.str.toString),
+			_obj.get("source").flatMap(_ match { case Js.Null => None; case some => Some(some)}).map(inner => inner.str.toString),
 			Position.from(_obj("start")),
 			Position.from(_obj("end"))
 		)
@@ -122,7 +122,7 @@ object Identifier {
 
 		new Identifier(
 			_obj("name").str.toString,
-			_obj.get("loc").map(inner => SourceLocation.from(inner))
+			_obj.get("loc").flatMap(_ match { case Js.Null => None; case some => Some(some)}).map(inner => SourceLocation.from(inner))
 		)
 	}
 }
@@ -186,7 +186,7 @@ object RegExpLiteral {
 		new RegExpLiteral(
 			Regex.from(_obj("regex")),
 			_obj("raw").str.toString,
-			_obj.get("loc").map(inner => SourceLocation.from(inner))
+			_obj.get("loc").flatMap(_ match { case Js.Null => None; case some => Some(some)}).map(inner => SourceLocation.from(inner))
 		)
 	}
 }
@@ -209,7 +209,7 @@ object Program {
 
 		new Program(
 			_obj("body").arr.map(elem => Statement.from(elem)),
-			_obj.get("loc").map(inner => SourceLocation.from(inner))
+			_obj.get("loc").flatMap(_ match { case Js.Null => None; case some => Some(some)}).map(inner => SourceLocation.from(inner))
 		)
 	}
 }
@@ -231,10 +231,10 @@ object Function {
 		val _obj = src.obj
 
 		new Function(
-			_obj.get("id").map(inner => Identifier.from(inner)),
+			_obj.get("id").flatMap(_ match { case Js.Null => None; case some => Some(some)}).map(inner => Identifier.from(inner)),
 			_obj("params").arr.map(elem => Pattern.from(elem)),
 			FunctionBody.from(_obj("body")),
-			_obj.get("loc").map(inner => SourceLocation.from(inner))
+			_obj.get("loc").flatMap(_ match { case Js.Null => None; case some => Some(some)}).map(inner => SourceLocation.from(inner))
 		)
 	}
 }
@@ -290,7 +290,7 @@ object ExpressionStatement {
 
 		new ExpressionStatement(
 			Expression.from(_obj("expression")),
-			_obj.get("loc").map(inner => SourceLocation.from(inner))
+			_obj.get("loc").flatMap(_ match { case Js.Null => None; case some => Some(some)}).map(inner => SourceLocation.from(inner))
 		)
 	}
 }
@@ -316,7 +316,7 @@ object Directive {
 		new Directive(
 			Literal.from(_obj("expression")),
 			_obj("directive").str.toString,
-			_obj.get("loc").map(inner => SourceLocation.from(inner))
+			_obj.get("loc").flatMap(_ match { case Js.Null => None; case some => Some(some)}).map(inner => SourceLocation.from(inner))
 		)
 	}
 }
@@ -339,7 +339,7 @@ object BlockStatement {
 
 		new BlockStatement(
 			_obj("body").arr.map(elem => Statement.from(elem)),
-			_obj.get("loc").map(inner => SourceLocation.from(inner))
+			_obj.get("loc").flatMap(_ match { case Js.Null => None; case some => Some(some)}).map(inner => SourceLocation.from(inner))
 		)
 	}
 }
@@ -380,7 +380,7 @@ object EmptyStatement {
 		assert(_obj("type").str == "EmptyStatement")
 
 		new EmptyStatement(
-			_obj.get("loc").map(inner => SourceLocation.from(inner))
+			_obj.get("loc").flatMap(_ match { case Js.Null => None; case some => Some(some)}).map(inner => SourceLocation.from(inner))
 		)
 	}
 }
@@ -400,7 +400,7 @@ object DebuggerStatement {
 		assert(_obj("type").str == "DebuggerStatement")
 
 		new DebuggerStatement(
-			_obj.get("loc").map(inner => SourceLocation.from(inner))
+			_obj.get("loc").flatMap(_ match { case Js.Null => None; case some => Some(some)}).map(inner => SourceLocation.from(inner))
 		)
 	}
 }
@@ -425,7 +425,7 @@ object WithStatement {
 		new WithStatement(
 			Expression.from(_obj("object")),
 			Statement.from(_obj("body")),
-			_obj.get("loc").map(inner => SourceLocation.from(inner))
+			_obj.get("loc").flatMap(_ match { case Js.Null => None; case some => Some(some)}).map(inner => SourceLocation.from(inner))
 		)
 	}
 }
@@ -447,8 +447,8 @@ object ReturnStatement {
 		assert(_obj("type").str == "ReturnStatement")
 
 		new ReturnStatement(
-			_obj.get("argument").map(inner => Expression.from(inner)),
-			_obj.get("loc").map(inner => SourceLocation.from(inner))
+			_obj.get("argument").flatMap(_ match { case Js.Null => None; case some => Some(some)}).map(inner => Expression.from(inner)),
+			_obj.get("loc").flatMap(_ match { case Js.Null => None; case some => Some(some)}).map(inner => SourceLocation.from(inner))
 		)
 	}
 }
@@ -473,7 +473,7 @@ object LabeledStatement {
 		new LabeledStatement(
 			Identifier.from(_obj("label")),
 			Statement.from(_obj("body")),
-			_obj.get("loc").map(inner => SourceLocation.from(inner))
+			_obj.get("loc").flatMap(_ match { case Js.Null => None; case some => Some(some)}).map(inner => SourceLocation.from(inner))
 		)
 	}
 }
@@ -495,8 +495,8 @@ object BreakStatement {
 		assert(_obj("type").str == "BreakStatement")
 
 		new BreakStatement(
-			_obj.get("label").map(inner => Identifier.from(inner)),
-			_obj.get("loc").map(inner => SourceLocation.from(inner))
+			_obj.get("label").flatMap(_ match { case Js.Null => None; case some => Some(some)}).map(inner => Identifier.from(inner)),
+			_obj.get("loc").flatMap(_ match { case Js.Null => None; case some => Some(some)}).map(inner => SourceLocation.from(inner))
 		)
 	}
 }
@@ -518,8 +518,8 @@ object ContinueStatement {
 		assert(_obj("type").str == "ContinueStatement")
 
 		new ContinueStatement(
-			_obj.get("label").map(inner => Identifier.from(inner)),
-			_obj.get("loc").map(inner => SourceLocation.from(inner))
+			_obj.get("label").flatMap(_ match { case Js.Null => None; case some => Some(some)}).map(inner => Identifier.from(inner)),
+			_obj.get("loc").flatMap(_ match { case Js.Null => None; case some => Some(some)}).map(inner => SourceLocation.from(inner))
 		)
 	}
 }
@@ -545,8 +545,8 @@ object IfStatement {
 		new IfStatement(
 			Expression.from(_obj("test")),
 			Statement.from(_obj("consequent")),
-			_obj.get("alternate").map(inner => Statement.from(inner)),
-			_obj.get("loc").map(inner => SourceLocation.from(inner))
+			_obj.get("alternate").flatMap(_ match { case Js.Null => None; case some => Some(some)}).map(inner => Statement.from(inner)),
+			_obj.get("loc").flatMap(_ match { case Js.Null => None; case some => Some(some)}).map(inner => SourceLocation.from(inner))
 		)
 	}
 }
@@ -571,7 +571,7 @@ object SwitchStatement {
 		new SwitchStatement(
 			Expression.from(_obj("discriminant")),
 			_obj("cases").arr.map(elem => SwitchCase.from(elem)),
-			_obj.get("loc").map(inner => SourceLocation.from(inner))
+			_obj.get("loc").flatMap(_ match { case Js.Null => None; case some => Some(some)}).map(inner => SourceLocation.from(inner))
 		)
 	}
 }
@@ -594,9 +594,9 @@ object SwitchCase {
 		assert(_obj("type").str == "SwitchCase")
 
 		new SwitchCase(
-			_obj.get("test").map(inner => Expression.from(inner)),
+			_obj.get("test").flatMap(_ match { case Js.Null => None; case some => Some(some)}).map(inner => Expression.from(inner)),
 			_obj("consequent").arr.map(elem => Statement.from(elem)),
-			_obj.get("loc").map(inner => SourceLocation.from(inner))
+			_obj.get("loc").flatMap(_ match { case Js.Null => None; case some => Some(some)}).map(inner => SourceLocation.from(inner))
 		)
 	}
 }
@@ -619,7 +619,7 @@ object ThrowStatement {
 
 		new ThrowStatement(
 			Expression.from(_obj("argument")),
-			_obj.get("loc").map(inner => SourceLocation.from(inner))
+			_obj.get("loc").flatMap(_ match { case Js.Null => None; case some => Some(some)}).map(inner => SourceLocation.from(inner))
 		)
 	}
 }
@@ -644,9 +644,9 @@ object TryStatement {
 
 		new TryStatement(
 			BlockStatement.from(_obj("block")),
-			_obj.get("handler").map(inner => CatchClause.from(inner)),
-			_obj.get("finalizer").map(inner => BlockStatement.from(inner)),
-			_obj.get("loc").map(inner => SourceLocation.from(inner))
+			_obj.get("handler").flatMap(_ match { case Js.Null => None; case some => Some(some)}).map(inner => CatchClause.from(inner)),
+			_obj.get("finalizer").flatMap(_ match { case Js.Null => None; case some => Some(some)}).map(inner => BlockStatement.from(inner)),
+			_obj.get("loc").flatMap(_ match { case Js.Null => None; case some => Some(some)}).map(inner => SourceLocation.from(inner))
 		)
 	}
 }
@@ -671,7 +671,7 @@ object CatchClause {
 		new CatchClause(
 			Pattern.from(_obj("param")),
 			BlockStatement.from(_obj("body")),
-			_obj.get("loc").map(inner => SourceLocation.from(inner))
+			_obj.get("loc").flatMap(_ match { case Js.Null => None; case some => Some(some)}).map(inner => SourceLocation.from(inner))
 		)
 	}
 }
@@ -696,7 +696,7 @@ object WhileStatement {
 		new WhileStatement(
 			Expression.from(_obj("test")),
 			Statement.from(_obj("body")),
-			_obj.get("loc").map(inner => SourceLocation.from(inner))
+			_obj.get("loc").flatMap(_ match { case Js.Null => None; case some => Some(some)}).map(inner => SourceLocation.from(inner))
 		)
 	}
 }
@@ -721,7 +721,7 @@ object DoWhileStatement {
 		new DoWhileStatement(
 			Statement.from(_obj("body")),
 			Expression.from(_obj("test")),
-			_obj.get("loc").map(inner => SourceLocation.from(inner))
+			_obj.get("loc").flatMap(_ match { case Js.Null => None; case some => Some(some)}).map(inner => SourceLocation.from(inner))
 		)
 	}
 }
@@ -746,11 +746,11 @@ object ForStatement {
 		assert(_obj("type").str == "ForStatement")
 
 		new ForStatement(
-			_obj.get("init").map(inner => ForInit.from(inner)),
-			_obj.get("test").map(inner => Expression.from(inner)),
-			_obj.get("update").map(inner => Expression.from(inner)),
+			_obj.get("init").flatMap(_ match { case Js.Null => None; case some => Some(some)}).map(inner => ForInit.from(inner)),
+			_obj.get("test").flatMap(_ match { case Js.Null => None; case some => Some(some)}).map(inner => Expression.from(inner)),
+			_obj.get("update").flatMap(_ match { case Js.Null => None; case some => Some(some)}).map(inner => Expression.from(inner)),
 			Statement.from(_obj("body")),
-			_obj.get("loc").map(inner => SourceLocation.from(inner))
+			_obj.get("loc").flatMap(_ match { case Js.Null => None; case some => Some(some)}).map(inner => SourceLocation.from(inner))
 		)
 	}
 }
@@ -777,7 +777,7 @@ object ForInStatement {
 			ForInTarget.from(_obj("left")),
 			Expression.from(_obj("right")),
 			Statement.from(_obj("body")),
-			_obj.get("loc").map(inner => SourceLocation.from(inner))
+			_obj.get("loc").flatMap(_ match { case Js.Null => None; case some => Some(some)}).map(inner => SourceLocation.from(inner))
 		)
 	}
 }
@@ -818,7 +818,7 @@ object FunctionDeclaration {
 			Identifier.from(_obj("id")),
 			_obj("params").arr.map(elem => Pattern.from(elem)),
 			FunctionBody.from(_obj("body")),
-			_obj.get("loc").map(inner => SourceLocation.from(inner))
+			_obj.get("loc").flatMap(_ match { case Js.Null => None; case some => Some(some)}).map(inner => SourceLocation.from(inner))
 		)
 	}
 }
@@ -841,7 +841,7 @@ object VariableDeclaration {
 
 		new VariableDeclaration(
 			_obj("declarations").arr.map(elem => VariableDeclarator.from(elem)),
-			_obj.get("loc").map(inner => SourceLocation.from(inner))
+			_obj.get("loc").flatMap(_ match { case Js.Null => None; case some => Some(some)}).map(inner => SourceLocation.from(inner))
 		)
 	}
 }
@@ -865,8 +865,8 @@ object VariableDeclarator {
 
 		new VariableDeclarator(
 			Pattern.from(_obj("id")),
-			_obj.get("init").map(inner => Expression.from(inner)),
-			_obj.get("loc").map(inner => SourceLocation.from(inner))
+			_obj.get("init").flatMap(_ match { case Js.Null => None; case some => Some(some)}).map(inner => Expression.from(inner)),
+			_obj.get("loc").flatMap(_ match { case Js.Null => None; case some => Some(some)}).map(inner => SourceLocation.from(inner))
 		)
 	}
 }
@@ -918,7 +918,7 @@ object ThisExpression {
 		assert(_obj("type").str == "ThisExpression")
 
 		new ThisExpression(
-			_obj.get("loc").map(inner => SourceLocation.from(inner))
+			_obj.get("loc").flatMap(_ match { case Js.Null => None; case some => Some(some)}).map(inner => SourceLocation.from(inner))
 		)
 	}
 }
@@ -940,8 +940,8 @@ object ArrayExpression {
 		assert(_obj("type").str == "ArrayExpression")
 
 		new ArrayExpression(
-			_obj("elements").arr.map(elem => Option(elem).map(inner => Expression.from(inner))),
-			_obj.get("loc").map(inner => SourceLocation.from(inner))
+			_obj("elements").arr.map(elem => (elem match { case Js.Null => None; case some => Some(some)}).map(inner => Expression.from(inner))),
+			_obj.get("loc").flatMap(_ match { case Js.Null => None; case some => Some(some)}).map(inner => SourceLocation.from(inner))
 		)
 	}
 }
@@ -964,7 +964,7 @@ object ObjectExpression {
 
 		new ObjectExpression(
 			_obj("properties").arr.map(elem => Property.from(elem)),
-			_obj.get("loc").map(inner => SourceLocation.from(inner))
+			_obj.get("loc").flatMap(_ match { case Js.Null => None; case some => Some(some)}).map(inner => SourceLocation.from(inner))
 		)
 	}
 }
@@ -991,7 +991,7 @@ object Property {
 			PropertyKey.from(_obj("key")),
 			Expression.from(_obj("value")),
 			PropertyKind.from(_obj("kind")),
-			_obj.get("loc").map(inner => SourceLocation.from(inner))
+			_obj.get("loc").flatMap(_ match { case Js.Null => None; case some => Some(some)}).map(inner => SourceLocation.from(inner))
 		)
 	}
 }
@@ -1014,10 +1014,10 @@ object FunctionExpression {
 		assert(_obj("type").str == "FunctionExpression")
 
 		new FunctionExpression(
-			_obj.get("id").map(inner => Identifier.from(inner)),
+			_obj.get("id").flatMap(_ match { case Js.Null => None; case some => Some(some)}).map(inner => Identifier.from(inner)),
 			_obj("params").arr.map(elem => Pattern.from(elem)),
 			FunctionBody.from(_obj("body")),
-			_obj.get("loc").map(inner => SourceLocation.from(inner))
+			_obj.get("loc").flatMap(_ match { case Js.Null => None; case some => Some(some)}).map(inner => SourceLocation.from(inner))
 		)
 	}
 }
@@ -1044,7 +1044,7 @@ object UnaryExpression {
 			UnaryOperator.from(_obj("operator")),
 			_obj("prefix").isInstanceOf[Js.True.type],
 			Expression.from(_obj("argument")),
-			_obj.get("loc").map(inner => SourceLocation.from(inner))
+			_obj.get("loc").flatMap(_ match { case Js.Null => None; case some => Some(some)}).map(inner => SourceLocation.from(inner))
 		)
 	}
 }
@@ -1123,7 +1123,7 @@ object UpdateExpression {
 			UpdateOperator.from(_obj("operator")),
 			Expression.from(_obj("argument")),
 			_obj("prefix").isInstanceOf[Js.True.type],
-			_obj.get("loc").map(inner => SourceLocation.from(inner))
+			_obj.get("loc").flatMap(_ match { case Js.Null => None; case some => Some(some)}).map(inner => SourceLocation.from(inner))
 		)
 	}
 }
@@ -1172,7 +1172,7 @@ object BinaryExpression {
 			BinaryOperator.from(_obj("operator")),
 			Expression.from(_obj("left")),
 			Expression.from(_obj("right")),
-			_obj.get("loc").map(inner => SourceLocation.from(inner))
+			_obj.get("loc").flatMap(_ match { case Js.Null => None; case some => Some(some)}).map(inner => SourceLocation.from(inner))
 		)
 	}
 }
@@ -1335,7 +1335,7 @@ object AssignmentExpression {
 			AssignmentOperator.from(_obj("operator")),
 			AssignmentTarget.from(_obj("left")),
 			Expression.from(_obj("right")),
-			_obj.get("loc").map(inner => SourceLocation.from(inner))
+			_obj.get("loc").flatMap(_ match { case Js.Null => None; case some => Some(some)}).map(inner => SourceLocation.from(inner))
 		)
 	}
 }
@@ -1444,7 +1444,7 @@ object LogicalExpression {
 			LogicalOperator.from(_obj("operator")),
 			Expression.from(_obj("left")),
 			Expression.from(_obj("right")),
-			_obj.get("loc").map(inner => SourceLocation.from(inner))
+			_obj.get("loc").flatMap(_ match { case Js.Null => None; case some => Some(some)}).map(inner => SourceLocation.from(inner))
 		)
 	}
 }
@@ -1493,7 +1493,7 @@ object MemberExpression {
 			Expression.from(_obj("object")),
 			Expression.from(_obj("property")),
 			_obj("computed").isInstanceOf[Js.True.type],
-			_obj.get("loc").map(inner => SourceLocation.from(inner))
+			_obj.get("loc").flatMap(_ match { case Js.Null => None; case some => Some(some)}).map(inner => SourceLocation.from(inner))
 		)
 	}
 }
@@ -1520,7 +1520,7 @@ object ConditionalExpression {
 			Expression.from(_obj("test")),
 			Expression.from(_obj("alternate")),
 			Expression.from(_obj("consequent")),
-			_obj.get("loc").map(inner => SourceLocation.from(inner))
+			_obj.get("loc").flatMap(_ match { case Js.Null => None; case some => Some(some)}).map(inner => SourceLocation.from(inner))
 		)
 	}
 }
@@ -1545,7 +1545,7 @@ object CallExpression {
 		new CallExpression(
 			Expression.from(_obj("callee")),
 			_obj("arguments").arr.map(elem => Expression.from(elem)),
-			_obj.get("loc").map(inner => SourceLocation.from(inner))
+			_obj.get("loc").flatMap(_ match { case Js.Null => None; case some => Some(some)}).map(inner => SourceLocation.from(inner))
 		)
 	}
 }
@@ -1570,7 +1570,7 @@ object NewExpression {
 		new NewExpression(
 			Expression.from(_obj("callee")),
 			_obj("arguments").arr.map(elem => Expression.from(elem)),
-			_obj.get("loc").map(inner => SourceLocation.from(inner))
+			_obj.get("loc").flatMap(_ match { case Js.Null => None; case some => Some(some)}).map(inner => SourceLocation.from(inner))
 		)
 	}
 }
@@ -1593,7 +1593,7 @@ object SequenceExpression {
 
 		new SequenceExpression(
 			_obj("expressions").arr.map(elem => Expression.from(elem)),
-			_obj.get("loc").map(inner => SourceLocation.from(inner))
+			_obj.get("loc").flatMap(_ match { case Js.Null => None; case some => Some(some)}).map(inner => SourceLocation.from(inner))
 		)
 	}
 }
@@ -1633,7 +1633,7 @@ object BooleanLiteral {
 		new BooleanLiteral(
 			_obj("value").isInstanceOf[Js.True.type],
 			_obj("raw").str.toString,
-			_obj.get("loc").map(inner => SourceLocation.from(inner))
+			_obj.get("loc").flatMap(_ match { case Js.Null => None; case some => Some(some)}).map(inner => SourceLocation.from(inner))
 		)
 	}
 }
@@ -1656,7 +1656,7 @@ object NumberLiteral {
 
 		new NumberLiteral(
 			_obj("raw").str.toString,
-			_obj.get("loc").map(inner => SourceLocation.from(inner))
+			_obj.get("loc").flatMap(_ match { case Js.Null => None; case some => Some(some)}).map(inner => SourceLocation.from(inner))
 		)
 	}
 }
@@ -1682,7 +1682,7 @@ object StringLiteral {
 		new StringLiteral(
 			_obj("value").str.toString,
 			_obj("raw").str.toString,
-			_obj.get("loc").map(inner => SourceLocation.from(inner))
+			_obj.get("loc").flatMap(_ match { case Js.Null => None; case some => Some(some)}).map(inner => SourceLocation.from(inner))
 		)
 	}
 }
@@ -1705,7 +1705,7 @@ object NullLiteral {
 
 		new NullLiteral(
 			_obj("raw").str.toString,
-			_obj.get("loc").map(inner => SourceLocation.from(inner))
+			_obj.get("loc").flatMap(_ match { case Js.Null => None; case some => Some(some)}).map(inner => SourceLocation.from(inner))
 		)
 	}
 }
