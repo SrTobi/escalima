@@ -788,13 +788,13 @@ export function buildScalaAst(spec: Specification, options: Options): string {
                 const propTypesExpr = realParams.map(toTypedName).join(", ")
                 const propNamesExpr = realParams.map(toName).join(", ")
 
-                objWriter.println(`def apply(${propTypesExpr}): ${norm(name)} = new ${name}(${propNamesExpr})`)
+                objWriter.println(`def apply(${propTypesExpr}): ${norm(name)} = new ${norm(name)}(${propNamesExpr})`)
                 hasApplyOrUnapply = true
             }
             if (hasOwnParams) {
                 // unapply
                 const wrap = ownParams.length > 1? (str: string) => `(${str})` : (str: string) => str
-                const param = beginLower(norm(name))
+                const param = norm(beginLower(norm(name)))
                 const accessExpr = wrap(ownParams.map(toName).map(prop => `${param}.${prop}`).join(", "))
                 const propTypeTuple = wrap(ownParams.map(toType).join(", "))
                 objWriter.println(`def unapply(${param}: ${norm(name)}): Option[${propTypeTuple}] = Some(${accessExpr})`)
