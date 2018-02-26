@@ -10,13 +10,14 @@ import { prototype } from 'events';
 
 export interface Options {
     package: string
+    discriminant: string
+    indentionString?: string
 
     forceClasses: string[]
     forceAbstract: string[]
     forceTrait: string[]
-    discriminant: string,
+    suppressFromJson: string[]
     renames: { from: string, to: string}[]
-    indentionString?: string,
     parseConditions: { [target: string]: (src: string) => string }
 }
 
@@ -804,82 +805,86 @@ export function buildScalaAst(spec: Specification, options: Options): string {
                 hasApplyOrUnapply = true
             }
 
-            if (hasApplyOrUnapply) {
+            const hasFromJson = options.suppressFromJson.indexOf(this.name) === -1
+            if (hasApplyOrUnapply && hasFromJson) {
                 objWriter.println()
             }
 
-            // parse
 
-            function printInheritingCases(of: InterfaceEntry, caseWriter: Writer, obj: string, src: string) {
-                for (const intf of of.allInheritingIntf) {
-                    const discriminantEntry = Properties.get(intf.props, discriminant)
-                    if (!intf.isAbstract &&
-                            discriminantEntry instanceof LiteralEntry &&
-                            typeof discriminantEntry.value === "string") {
-                        const cond = options.parseConditions[intf.name]
-                        if (typeof cond === "boolean" && !cond) {
-                            continue
+            if (hasFromJson) {
+                // parse (fromJson)
+
+                function printInheritingCases(of: InterfaceEntry, caseWriter: Writer, obj: string, src: string) {
+                    for (const intf of of.allInheritingIntf) {
+                        const discriminantEntry = Properties.get(intf.props, discriminant)
+                        if (!intf.isAbstract &&
+                                discriminantEntry instanceof LiteralEntry &&
+                                typeof discriminantEntry.value === "string") {
+                            const cond = options.parseConditions[intf.name]
+                            if (typeof cond === "boolean" && !cond) {
+                                continue
+                            }
+                            const conditionExpr = (typeof cond === "function" ? `if ${cond(`${obj}`)} `: "")
+                            const discriminantValue = discriminantEntry.value
+                            caseWriter.println(`case "${discriminantValue}" ${conditionExpr}=> ${intf.fromExpr(src)}`)
                         }
-                        const conditionExpr = (typeof cond === "function" ? `if ${cond(`${obj}`)} `: "")
+                    }
+                }
+
+                if (!isAbstract) {
+
+                    objWriter.println(`def from(src: Js.Value): ${norm(name)} = {`)
+                    const fromWriter = objWriter.indented()
+                    fromWriter.println("val _obj = src.obj")
+
+                    if (!this.isInnerClass && this.needDiscriminant || discriminantEntry) {
+                        if (!(discriminantEntry instanceof LiteralEntry) || typeof discriminantEntry.value !== "string") {
+                            throw new Error(`Non abstract class '${norm(name)}' must have a specific string property '${discriminant}'`)
+                        }
                         const discriminantValue = discriminantEntry.value
-                        caseWriter.println(`case "${discriminantValue}" ${conditionExpr}=> ${intf.fromExpr(src)}`)
+
+
+                        if (this.allInheritingIntf.length > 0) {
+                            fromWriter.println(`_obj("${discriminant}").str match {`)
+                            const caseWriter = fromWriter.indented()
+                            printInheritingCases(this, caseWriter, "_obj", "src")
+                            caseWriter.println("case _ =>")
+                            caseWriter.end()
+                            fromWriter.println("}")
+                        }
+                        fromWriter.println(`assert(_obj("${discriminant}").str == "${discriminantValue}")`)
+
+                        const cond = options.parseConditions[this.name]
+                        if (typeof cond === "function") {
+                            fromWriter.println(`assert(${cond("_obj")})`)
+                        }
                     }
+                    fromWriter.println()
+
+                    const hasParams = realParams.length > 0
+                    fromWriter.println(`new ${norm(name)}${hasParams? "(" : ""}`)
+                    const argWriter = fromWriter.indented()
+                    realParams.forEach(([arg, entry,], idx, self) => {
+                        const isLast = idx == self.length - 1
+                        const value = `_obj("${arg}")`
+                        const optValue = `_obj.get("${arg}")`
+                        const svalue = entry.fromExpr(value, optValue)
+                        argWriter.println(svalue + (isLast? "" : ","))
+                    })
+                    argWriter.end()
+                    if (hasParams) {
+                        fromWriter.println(")")
+                    }
+                    fromWriter.end()
+                    objWriter.println("}")
+                } else {
+                    objWriter.println(`def from(src: Js.Value): ${norm(name)} = src("${discriminant}").str match {`)
+                    const caseWriter = objWriter.indented()
+                    printInheritingCases(this, caseWriter, "src.obj", "src")
+                    caseWriter.println(`case discriminant => throw new IllegalArgumentException(s"Unknown ${discriminant} '$discriminant' for ${name}")`)
+                    caseWriter.end()
+                    objWriter.println("}")
                 }
-            }
-
-            if (!isAbstract) {
-
-                objWriter.println(`def from(src: Js.Value): ${norm(name)} = {`)
-                const fromWriter = objWriter.indented()
-                fromWriter.println("val _obj = src.obj")
-
-                if (!this.isInnerClass && this.needDiscriminant || discriminantEntry) {
-                    if (!(discriminantEntry instanceof LiteralEntry) || typeof discriminantEntry.value !== "string") {
-                        throw new Error(`Non abstract class '${norm(name)}' must have a specific string property '${discriminant}'`)
-                    }
-                    const discriminantValue = discriminantEntry.value
-
-
-                    if (this.allInheritingIntf.length > 0) {
-                        fromWriter.println(`_obj("${discriminant}").str match {`)
-                        const caseWriter = fromWriter.indented()
-                        printInheritingCases(this, caseWriter, "_obj", "src")
-                        caseWriter.println("case _ =>")
-                        caseWriter.end()
-                        fromWriter.println("}")
-                    }
-                    fromWriter.println(`assert(_obj("${discriminant}").str == "${discriminantValue}")`)
-
-                    const cond = options.parseConditions[this.name]
-                    if (typeof cond === "function") {
-                        fromWriter.println(`assert(${cond("_obj")})`)
-                    }
-                }
-                fromWriter.println()
-
-                const hasParams = realParams.length > 0
-                fromWriter.println(`new ${norm(name)}${hasParams? "(" : ""}`)
-                const argWriter = fromWriter.indented()
-                realParams.forEach(([arg, entry,], idx, self) => {
-                    const isLast = idx == self.length - 1
-                    const value = `_obj("${arg}")`
-                    const optValue = `_obj.get("${arg}")`
-                    const svalue = entry.fromExpr(value, optValue)
-                    argWriter.println(svalue + (isLast? "" : ","))
-                })
-                argWriter.end()
-                if (hasParams) {
-                    fromWriter.println(")")
-                }
-                fromWriter.end()
-                objWriter.println("}")
-            } else {
-                objWriter.println(`def from(src: Js.Value): ${norm(name)} = src("${discriminant}").str match {`)
-                const caseWriter = objWriter.indented()
-                printInheritingCases(this, caseWriter, "src.obj", "src")
-                caseWriter.println(`case discriminant => throw new IllegalArgumentException(s"Unknown ${discriminant} '$discriminant' for ${name}")`)
-                caseWriter.end()
-                objWriter.println("}")
             }
 
             objWriter.end()
