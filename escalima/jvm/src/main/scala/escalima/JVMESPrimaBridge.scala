@@ -1,6 +1,6 @@
 package escalima
 
-import javax.script.{Invocable, ScriptEngineManager}
+import javax.script.{Invocable, ScriptEngineManager, ScriptException}
 
 private class JVMESPrimaBridge extends ESPrimaBridge {
 
@@ -15,8 +15,13 @@ private class JVMESPrimaBridge extends ESPrimaBridge {
 
     override def parse(source: String, module: Boolean): String = {
         val method = if (module) "parseModule" else "parseScript"
-        val res = engine.asInstanceOf[Invocable].invokeMethod(esprimaObject, method, source, optionObj)
-        val json = engine.asInstanceOf[Invocable].invokeMethod(engine.get("JSON"), "stringify", res)
-        json.asInstanceOf[String]
+        try {
+            val res = engine.asInstanceOf[Invocable].invokeMethod(esprimaObject, method, source, optionObj)
+            val json = engine.asInstanceOf[Invocable].invokeMethod(engine.get("JSON"), "stringify", res)
+            json.asInstanceOf[String]
+        } catch {
+            case e: ScriptException =>
+                throw ESPrimaParseException(e.getMessage)
+        }
     }
 }
