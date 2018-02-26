@@ -6,7 +6,8 @@
   "scripts": {
     "build": "tsc",
     "watch": "tsc --watch",
-    "build-grammar": "jison src/grammar.jison -o src/grammar.js"
+    "build-grammar": "jison src/grammar.jison -o src/grammar.js",
+	"start": "tsc && node ."
   },
   "repository": {
     "type": "git",
