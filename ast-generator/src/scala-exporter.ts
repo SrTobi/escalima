@@ -704,6 +704,9 @@ export function buildScalaAst(spec: Specification, options: Options): string {
                 writer.println("}")
                 writer.println()
             } else {
+                if (this.isAbstract && this.inheritingIntfs.length === 0) {
+                    throw new Error(`${name} is abstract but never inherited from!`)
+                } 
                 // check if all traits have been implemented
                 this.allBases.filter(b => b.isTrait).forEach(b => {
                     b.props.forEach(([propname, proptype]) => {
