@@ -638,7 +638,7 @@ export function buildScalaAst(spec: Specification, options: Options): string {
         }
 
         printDefinition(targetWriter: Writer) {
-            console.log("Print definition for intf", this.name)
+            console.log(`Print definition for ${this.isTrait? "trait" : (this.isAbstract? "abstract class" : "class")}`, this.name)
             if (this.isInnerClass) {
                 assert(this.allInheritingIntf.length === 0)
                 assert(!this.isTrait)
@@ -931,7 +931,7 @@ export function buildScalaAst(spec: Specification, options: Options): string {
         }
 
         printDefinition(targetWriter: Writer): void {
-            console.log("Print definition for enum", this.name)
+            console.log("Print definition for enum ", this.name)
             const name = norm(this.name)
             const writer = targetWriter.sub()
             writer.println(`sealed abstract class ${name} {`)
