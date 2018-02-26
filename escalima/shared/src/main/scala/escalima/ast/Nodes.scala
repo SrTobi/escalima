@@ -9,55 +9,6 @@ sealed abstract class Node(val loc: Option[SourceLocation]) {
 
 object Node {
 	def unapply(node: Node): Option[Option[SourceLocation]] = Some(node.loc)
-
-	def from(src: Js.Value): Node = src("type").str match {
-		case "Program" => Program.from(src)
-		case "FunctionDeclaration" => FunctionDeclaration.from(src)
-		case "FunctionExpression" => FunctionExpression.from(src)
-		case "ExpressionStatement" if !src.obj.contains("directive") => ExpressionStatement.from(src)
-		case "ExpressionStatement" if src.obj.contains("directive") => Directive.from(src)
-		case "BlockStatement" => BlockStatement.from(src)
-		case "EmptyStatement" => EmptyStatement.from(src)
-		case "DebuggerStatement" => DebuggerStatement.from(src)
-		case "WithStatement" => WithStatement.from(src)
-		case "ReturnStatement" => ReturnStatement.from(src)
-		case "LabeledStatement" => LabeledStatement.from(src)
-		case "BreakStatement" => BreakStatement.from(src)
-		case "ContinueStatement" => ContinueStatement.from(src)
-		case "IfStatement" => IfStatement.from(src)
-		case "SwitchStatement" => SwitchStatement.from(src)
-		case "ThrowStatement" => ThrowStatement.from(src)
-		case "TryStatement" => TryStatement.from(src)
-		case "WhileStatement" => WhileStatement.from(src)
-		case "DoWhileStatement" => DoWhileStatement.from(src)
-		case "ForStatement" => ForStatement.from(src)
-		case "ForInStatement" => ForInStatement.from(src)
-		case "VariableDeclaration" => VariableDeclaration.from(src)
-		case "SwitchCase" => SwitchCase.from(src)
-		case "CatchClause" => CatchClause.from(src)
-		case "VariableDeclarator" => VariableDeclarator.from(src)
-		case "Identifier" => Identifier.from(src)
-		case "Literal" if src.obj.contains("regex") => RegExpLiteral.from(src)
-		case "Literal" if src.obj("value").isInstanceOf[Js.True.type] || src.obj("value").isInstanceOf[Js.False.type] => BooleanLiteral.from(src)
-		case "Literal" if src.obj("value").isInstanceOf[Js.Num] => NumberLiteral.from(src)
-		case "Literal" if src.obj("value").isInstanceOf[Js.Str] && !src.obj.contains("regex") => StringLiteral.from(src)
-		case "Literal" if src.obj("value").isInstanceOf[Js.Null.type] => NullLiteral.from(src)
-		case "ThisExpression" => ThisExpression.from(src)
-		case "ArrayExpression" => ArrayExpression.from(src)
-		case "ObjectExpression" => ObjectExpression.from(src)
-		case "UnaryExpression" => UnaryExpression.from(src)
-		case "UpdateExpression" => UpdateExpression.from(src)
-		case "BinaryExpression" => BinaryExpression.from(src)
-		case "AssignmentExpression" => AssignmentExpression.from(src)
-		case "LogicalExpression" => LogicalExpression.from(src)
-		case "MemberExpression" => MemberExpression.from(src)
-		case "ConditionalExpression" => ConditionalExpression.from(src)
-		case "CallExpression" => CallExpression.from(src)
-		case "NewExpression" => NewExpression.from(src)
-		case "SequenceExpression" => SequenceExpression.from(src)
-		case "Property" => Property.from(src)
-		case discriminant => throw new IllegalArgumentException(s"Unknown type '$discriminant' for Node")
-	}
 }
 
 sealed class SourceLocation(val source: Option[String], val start: Position, val end: Position) {
@@ -191,41 +142,40 @@ object RegExpLiteral {
 	}
 }
 
-sealed class Program(val body: Seq[Statement], loc: Option[SourceLocation]) extends Node(loc) {
+sealed class Program(val body: Seq[ModuleStatement], loc: Option[SourceLocation]) extends Node(loc) {
 	override def toJSON: Js.Value = Js.Obj(
-			"type" -> Js.Str("Program"),
 			"body" -> Js.Arr(this.body.map(inner => inner.toJSON): _*),
 			"loc" -> this.loc.map(inner => inner.toJSON).getOrElse(Js.Null)
 		)
 }
 
 object Program {
-	def apply(body: Seq[Statement], loc: Option[SourceLocation]): Program = new Program(body, loc)
-	def unapply(program: Program): Option[Seq[Statement]] = Some(program.body)
+	def apply(body: Seq[ModuleStatement], loc: Option[SourceLocation]): Program = new Program(body, loc)
+	def unapply(program: Program): Option[Seq[ModuleStatement]] = Some(program.body)
 
 	def from(src: Js.Value): Program = {
 		val _obj = src.obj
-		assert(_obj("type").str == "Program")
 
 		new Program(
-			_obj("body").arr.map(elem => Statement.from(elem)),
+			_obj("body").arr.map(elem => ModuleStatement.from(elem)),
 			_obj.get("loc").flatMap(_ match { case Js.Null => None; case some => Some(some)}).map(inner => SourceLocation.from(inner))
 		)
 	}
 }
 
-sealed class Function(val id: Option[Identifier], val params: Seq[Pattern], val body: FunctionBody, loc: Option[SourceLocation]) extends Node(loc) {
+sealed class Function(val id: Option[Identifier], val params: Seq[Pattern], val body: FunctionBody, val generator: Boolean, loc: Option[SourceLocation]) extends Node(loc) {
 	override def toJSON: Js.Value = Js.Obj(
 			"id" -> this.id.map(inner => inner.toJSON).getOrElse(Js.Null),
 			"params" -> Js.Arr(this.params.map(inner => inner.toJSON): _*),
 			"body" -> this.body.toJSON,
+			"generator" -> (if (this.generator) Js.True else Js.False),
 			"loc" -> this.loc.map(inner => inner.toJSON).getOrElse(Js.Null)
 		)
 }
 
 object Function {
-	def apply(id: Option[Identifier], params: Seq[Pattern], body: FunctionBody, loc: Option[SourceLocation]): Function = new Function(id, params, body, loc)
-	def unapply(function: Function): Option[(Option[Identifier], Seq[Pattern], FunctionBody)] = Some((function.id, function.params, function.body))
+	def apply(id: Option[Identifier], params: Seq[Pattern], body: FunctionBody, generator: Boolean, loc: Option[SourceLocation]): Function = new Function(id, params, body, generator, loc)
+	def unapply(function: Function): Option[(Option[Identifier], Seq[Pattern], FunctionBody, Boolean)] = Some((function.id, function.params, function.body, function.generator))
 
 	def from(src: Js.Value): Function = {
 		val _obj = src.obj
@@ -234,12 +184,13 @@ object Function {
 			_obj.get("id").flatMap(_ match { case Js.Null => None; case some => Some(some)}).map(inner => Identifier.from(inner)),
 			_obj("params").arr.map(elem => Pattern.from(elem)),
 			FunctionBody.from(_obj("body")),
+			_obj("generator").isInstanceOf[Js.True.type],
 			_obj.get("loc").flatMap(_ match { case Js.Null => None; case some => Some(some)}).map(inner => SourceLocation.from(inner))
 		)
 	}
 }
 
-sealed trait Statement {
+sealed trait Statement extends ModuleStatement {
 	this: Node =>
 
 	def toJSON: Js.Value
@@ -265,8 +216,10 @@ object Statement {
 		case "DoWhileStatement" => DoWhileStatement.from(src)
 		case "ForStatement" => ForStatement.from(src)
 		case "ForInStatement" => ForInStatement.from(src)
+		case "ForOfStatement" => ForOfStatement.from(src)
 		case "FunctionDeclaration" => FunctionDeclaration.from(src)
 		case "VariableDeclaration" => VariableDeclaration.from(src)
+		case "ClassDeclaration" => ClassDeclaration.from(src)
 		case discriminant => throw new IllegalArgumentException(s"Unknown type '$discriminant' for Statement")
 	}
 }
@@ -344,15 +297,16 @@ object BlockStatement {
 	}
 }
 
-sealed class FunctionBody(val body: Seq[Statement]) {
-	def toJSON: Js.Value = Js.Obj(
+sealed class FunctionBody(val body: Seq[Statement], loc: Option[SourceLocation]) extends Node(loc) with ArrowFunctionBody {
+	override def toJSON: Js.Value = Js.Obj(
 			"type" -> Js.Str("BlockStatement"),
-			"body" -> Js.Arr(this.body.map(inner => inner.toJSON): _*)
+			"body" -> Js.Arr(this.body.map(inner => inner.toJSON): _*),
+			"loc" -> this.loc.map(inner => inner.toJSON).getOrElse(Js.Null)
 		)
 }
 
 object FunctionBody {
-	def apply(body: Seq[Statement]): FunctionBody = new FunctionBody(body)
+	def apply(body: Seq[Statement], loc: Option[SourceLocation]): FunctionBody = new FunctionBody(body, loc)
 	def unapply(functionBody: FunctionBody): Option[Seq[Statement]] = Some(functionBody.body)
 
 	def from(src: Js.Value): FunctionBody = {
@@ -360,7 +314,8 @@ object FunctionBody {
 		assert(_obj("type").str == "BlockStatement")
 
 		new FunctionBody(
-			_obj("body").arr.map(elem => Statement.from(elem))
+			_obj("body").arr.map(elem => Statement.from(elem)),
+			_obj.get("loc").flatMap(_ match { case Js.Null => None; case some => Some(some)}).map(inner => SourceLocation.from(inner))
 		)
 	}
 }
@@ -771,6 +726,10 @@ object ForInStatement {
 
 	def from(src: Js.Value): ForInStatement = {
 		val _obj = src.obj
+		_obj("type").str match {
+			case "ForOfStatement" => ForOfStatement.from(src)
+			case _ =>
+		}
 		assert(_obj("type").str == "ForInStatement")
 
 		new ForInStatement(
@@ -782,7 +741,7 @@ object ForInStatement {
 	}
 }
 
-sealed trait Declaration extends Statement {
+sealed trait Declaration extends Statement with Exportable {
 	this: Node =>
 
 	def toJSON: Js.Value
@@ -792,48 +751,51 @@ object Declaration {
 	def from(src: Js.Value): Declaration = src("type").str match {
 		case "FunctionDeclaration" => FunctionDeclaration.from(src)
 		case "VariableDeclaration" => VariableDeclaration.from(src)
+		case "ClassDeclaration" => ClassDeclaration.from(src)
 		case discriminant => throw new IllegalArgumentException(s"Unknown type '$discriminant' for Declaration")
 	}
 }
 
-sealed class FunctionDeclaration(val actualId: Identifier, params: Seq[Pattern], body: FunctionBody, loc: Option[SourceLocation]) extends Function(Some(actualId), params, body, loc) with Declaration {
+sealed class FunctionDeclaration(id: Option[Identifier], params: Seq[Pattern], body: FunctionBody, generator: Boolean, loc: Option[SourceLocation]) extends Function(id, params, body, generator, loc) with Declaration {
 	override def toJSON: Js.Value = Js.Obj(
 			"type" -> Js.Str("FunctionDeclaration"),
-			"id" -> this.actualId.toJSON,
+			"id" -> this.id.map(inner => inner.toJSON).getOrElse(Js.Null),
 			"params" -> Js.Arr(this.params.map(inner => inner.toJSON): _*),
 			"body" -> this.body.toJSON,
+			"generator" -> (if (this.generator) Js.True else Js.False),
 			"loc" -> this.loc.map(inner => inner.toJSON).getOrElse(Js.Null)
 		)
 }
 
 object FunctionDeclaration {
-	def apply(actualId: Identifier, params: Seq[Pattern], body: FunctionBody, loc: Option[SourceLocation]): FunctionDeclaration = new FunctionDeclaration(actualId, params, body, loc)
-	def unapply(functionDeclaration: FunctionDeclaration): Option[Identifier] = Some(functionDeclaration.actualId)
+	def apply(id: Option[Identifier], params: Seq[Pattern], body: FunctionBody, generator: Boolean, loc: Option[SourceLocation]): FunctionDeclaration = new FunctionDeclaration(id, params, body, generator, loc)
 
 	def from(src: Js.Value): FunctionDeclaration = {
 		val _obj = src.obj
 		assert(_obj("type").str == "FunctionDeclaration")
 
 		new FunctionDeclaration(
-			Identifier.from(_obj("id")),
+			_obj.get("id").flatMap(_ match { case Js.Null => None; case some => Some(some)}).map(inner => Identifier.from(inner)),
 			_obj("params").arr.map(elem => Pattern.from(elem)),
 			FunctionBody.from(_obj("body")),
+			_obj("generator").isInstanceOf[Js.True.type],
 			_obj.get("loc").flatMap(_ match { case Js.Null => None; case some => Some(some)}).map(inner => SourceLocation.from(inner))
 		)
 	}
 }
 
-sealed class VariableDeclaration(val declarations: Seq[VariableDeclarator], loc: Option[SourceLocation]) extends Node(loc) with Declaration with ForInit with ForInTarget {
+sealed class VariableDeclaration(val declarations: Seq[VariableDeclarator], val kind: VariableDeclarationKind, loc: Option[SourceLocation]) extends Node(loc) with Declaration with ForInit with ForInTarget {
 	override def toJSON: Js.Value = Js.Obj(
 			"type" -> Js.Str("VariableDeclaration"),
 			"declarations" -> Js.Arr(this.declarations.map(inner => inner.toJSON): _*),
+			"kind" -> this.kind.toJSON,
 			"loc" -> this.loc.map(inner => inner.toJSON).getOrElse(Js.Null)
 		)
 }
 
 object VariableDeclaration {
-	def apply(declarations: Seq[VariableDeclarator], loc: Option[SourceLocation]): VariableDeclaration = new VariableDeclaration(declarations, loc)
-	def unapply(variableDeclaration: VariableDeclaration): Option[Seq[VariableDeclarator]] = Some(variableDeclaration.declarations)
+	def apply(declarations: Seq[VariableDeclarator], kind: VariableDeclarationKind, loc: Option[SourceLocation]): VariableDeclaration = new VariableDeclaration(declarations, kind, loc)
+	def unapply(variableDeclaration: VariableDeclaration): Option[(Seq[VariableDeclarator], VariableDeclarationKind)] = Some((variableDeclaration.declarations, variableDeclaration.kind))
 
 	def from(src: Js.Value): VariableDeclaration = {
 		val _obj = src.obj
@@ -841,6 +803,7 @@ object VariableDeclaration {
 
 		new VariableDeclaration(
 			_obj("declarations").arr.map(elem => VariableDeclarator.from(elem)),
+			VariableDeclarationKind.from(_obj("kind")),
 			_obj.get("loc").flatMap(_ match { case Js.Null => None; case some => Some(some)}).map(inner => SourceLocation.from(inner))
 		)
 	}
@@ -871,7 +834,7 @@ object VariableDeclarator {
 	}
 }
 
-sealed trait Expression extends ForInit with AssignmentTarget {
+sealed trait Expression extends ForInit with AssignmentTarget with SpreadableExpression with Callee with ArrowFunctionBody with Exportable {
 	this: Node =>
 
 	def toJSON: Js.Value
@@ -899,6 +862,12 @@ object Expression {
 		case "CallExpression" => CallExpression.from(src)
 		case "NewExpression" => NewExpression.from(src)
 		case "SequenceExpression" => SequenceExpression.from(src)
+		case "ArrowFunctionExpression" => ArrowFunctionExpression.from(src)
+		case "YieldExpression" => YieldExpression.from(src)
+		case "TemplateLiteral" => TemplateLiteral.from(src)
+		case "TaggedTemplateExpression" => TaggedTemplateExpression.from(src)
+		case "ClassExpression" => ClassExpression.from(src)
+		case "MetaProperty" => MetaProperty.from(src)
 		case discriminant => throw new IllegalArgumentException(s"Unknown type '$discriminant' for Expression")
 	}
 }
@@ -923,7 +892,7 @@ object ThisExpression {
 	}
 }
 
-sealed class ArrayExpression(val elements: Seq[Option[Expression]], loc: Option[SourceLocation]) extends Node(loc) with Expression {
+sealed class ArrayExpression(val elements: Seq[Option[SpreadableExpression]], loc: Option[SourceLocation]) extends Node(loc) with Expression {
 	override def toJSON: Js.Value = Js.Obj(
 			"type" -> Js.Str("ArrayExpression"),
 			"elements" -> Js.Arr(this.elements.map(inner => inner.map(inner => inner.toJSON).getOrElse(Js.Null)): _*),
@@ -932,15 +901,15 @@ sealed class ArrayExpression(val elements: Seq[Option[Expression]], loc: Option[
 }
 
 object ArrayExpression {
-	def apply(elements: Seq[Option[Expression]], loc: Option[SourceLocation]): ArrayExpression = new ArrayExpression(elements, loc)
-	def unapply(arrayExpression: ArrayExpression): Option[Seq[Option[Expression]]] = Some(arrayExpression.elements)
+	def apply(elements: Seq[Option[SpreadableExpression]], loc: Option[SourceLocation]): ArrayExpression = new ArrayExpression(elements, loc)
+	def unapply(arrayExpression: ArrayExpression): Option[Seq[Option[SpreadableExpression]]] = Some(arrayExpression.elements)
 
 	def from(src: Js.Value): ArrayExpression = {
 		val _obj = src.obj
 		assert(_obj("type").str == "ArrayExpression")
 
 		new ArrayExpression(
-			_obj("elements").arr.map(elem => (elem match { case Js.Null => None; case some => Some(some)}).map(inner => Expression.from(inner))),
+			_obj("elements").arr.map(elem => (elem match { case Js.Null => None; case some => Some(some)}).map(inner => SpreadableExpression.from(inner))),
 			_obj.get("loc").flatMap(_ match { case Js.Null => None; case some => Some(some)}).map(inner => SourceLocation.from(inner))
 		)
 	}
@@ -969,19 +938,22 @@ object ObjectExpression {
 	}
 }
 
-sealed class Property(val key: PropertyKey, val value: Expression, val kind: PropertyKind, loc: Option[SourceLocation]) extends Node(loc) {
+sealed class Property(val key: PropertyKey, val value: Expression, val kind: PropertyKind, val method: Boolean, val shorthand: Boolean, val computed: Boolean, loc: Option[SourceLocation]) extends Node(loc) {
 	override def toJSON: Js.Value = Js.Obj(
 			"type" -> Js.Str("Property"),
 			"key" -> this.key.toJSON,
 			"value" -> this.value.toJSON,
 			"kind" -> this.kind.toJSON,
+			"method" -> (if (this.method) Js.True else Js.False),
+			"shorthand" -> (if (this.shorthand) Js.True else Js.False),
+			"computed" -> (if (this.computed) Js.True else Js.False),
 			"loc" -> this.loc.map(inner => inner.toJSON).getOrElse(Js.Null)
 		)
 }
 
 object Property {
-	def apply(key: PropertyKey, value: Expression, kind: PropertyKind, loc: Option[SourceLocation]): Property = new Property(key, value, kind, loc)
-	def unapply(property: Property): Option[(PropertyKey, Expression, PropertyKind)] = Some((property.key, property.value, property.kind))
+	def apply(key: PropertyKey, value: Expression, kind: PropertyKind, method: Boolean, shorthand: Boolean, computed: Boolean, loc: Option[SourceLocation]): Property = new Property(key, value, kind, method, shorthand, computed, loc)
+	def unapply(property: Property): Option[(PropertyKey, Expression, PropertyKind, Boolean, Boolean, Boolean)] = Some((property.key, property.value, property.kind, property.method, property.shorthand, property.computed))
 
 	def from(src: Js.Value): Property = {
 		val _obj = src.obj
@@ -991,23 +963,27 @@ object Property {
 			PropertyKey.from(_obj("key")),
 			Expression.from(_obj("value")),
 			PropertyKind.from(_obj("kind")),
+			_obj("method").isInstanceOf[Js.True.type],
+			_obj("shorthand").isInstanceOf[Js.True.type],
+			_obj("computed").isInstanceOf[Js.True.type],
 			_obj.get("loc").flatMap(_ match { case Js.Null => None; case some => Some(some)}).map(inner => SourceLocation.from(inner))
 		)
 	}
 }
 
-sealed class FunctionExpression(id: Option[Identifier], params: Seq[Pattern], body: FunctionBody, loc: Option[SourceLocation]) extends Function(id, params, body, loc) with Expression {
+sealed class FunctionExpression(id: Option[Identifier], params: Seq[Pattern], body: FunctionBody, generator: Boolean, loc: Option[SourceLocation]) extends Function(id, params, body, generator, loc) with Expression {
 	override def toJSON: Js.Value = Js.Obj(
 			"type" -> Js.Str("FunctionExpression"),
 			"id" -> this.id.map(inner => inner.toJSON).getOrElse(Js.Null),
 			"params" -> Js.Arr(this.params.map(inner => inner.toJSON): _*),
 			"body" -> this.body.toJSON,
+			"generator" -> (if (this.generator) Js.True else Js.False),
 			"loc" -> this.loc.map(inner => inner.toJSON).getOrElse(Js.Null)
 		)
 }
 
 object FunctionExpression {
-	def apply(id: Option[Identifier], params: Seq[Pattern], body: FunctionBody, loc: Option[SourceLocation]): FunctionExpression = new FunctionExpression(id, params, body, loc)
+	def apply(id: Option[Identifier], params: Seq[Pattern], body: FunctionBody, generator: Boolean, loc: Option[SourceLocation]): FunctionExpression = new FunctionExpression(id, params, body, generator, loc)
 
 	def from(src: Js.Value): FunctionExpression = {
 		val _obj = src.obj
@@ -1017,6 +993,7 @@ object FunctionExpression {
 			_obj.get("id").flatMap(_ match { case Js.Null => None; case some => Some(some)}).map(inner => Identifier.from(inner)),
 			_obj("params").arr.map(elem => Pattern.from(elem)),
 			FunctionBody.from(_obj("body")),
+			_obj("generator").isInstanceOf[Js.True.type],
 			_obj.get("loc").flatMap(_ match { case Js.Null => None; case some => Some(some)}).map(inner => SourceLocation.from(inner))
 		)
 	}
@@ -1471,7 +1448,7 @@ object LogicalOperator {
 	}
 }
 
-sealed class MemberExpression(val obj: Expression, val property: Expression, val computed: Boolean, loc: Option[SourceLocation]) extends Node(loc) with Expression with Pattern {
+sealed class MemberExpression(val obj: Callee, val property: Expression, val computed: Boolean, loc: Option[SourceLocation]) extends Node(loc) with Expression with Pattern {
 	override def toJSON: Js.Value = Js.Obj(
 			"type" -> Js.Str("MemberExpression"),
 			"object" -> this.obj.toJSON,
@@ -1482,15 +1459,15 @@ sealed class MemberExpression(val obj: Expression, val property: Expression, val
 }
 
 object MemberExpression {
-	def apply(obj: Expression, property: Expression, computed: Boolean, loc: Option[SourceLocation]): MemberExpression = new MemberExpression(obj, property, computed, loc)
-	def unapply(memberExpression: MemberExpression): Option[(Expression, Expression, Boolean)] = Some((memberExpression.obj, memberExpression.property, memberExpression.computed))
+	def apply(obj: Callee, property: Expression, computed: Boolean, loc: Option[SourceLocation]): MemberExpression = new MemberExpression(obj, property, computed, loc)
+	def unapply(memberExpression: MemberExpression): Option[(Callee, Expression, Boolean)] = Some((memberExpression.obj, memberExpression.property, memberExpression.computed))
 
 	def from(src: Js.Value): MemberExpression = {
 		val _obj = src.obj
 		assert(_obj("type").str == "MemberExpression")
 
 		new MemberExpression(
-			Expression.from(_obj("object")),
+			Callee.from(_obj("object")),
 			Expression.from(_obj("property")),
 			_obj("computed").isInstanceOf[Js.True.type],
 			_obj.get("loc").flatMap(_ match { case Js.Null => None; case some => Some(some)}).map(inner => SourceLocation.from(inner))
@@ -1525,7 +1502,7 @@ object ConditionalExpression {
 	}
 }
 
-sealed class CallExpression(val callee: Expression, val arguments: Seq[Expression], loc: Option[SourceLocation]) extends Node(loc) with Expression {
+sealed class CallExpression(val callee: Callee, val arguments: Seq[SpreadableExpression], loc: Option[SourceLocation]) extends Node(loc) with Expression {
 	override def toJSON: Js.Value = Js.Obj(
 			"type" -> Js.Str("CallExpression"),
 			"callee" -> this.callee.toJSON,
@@ -1535,22 +1512,22 @@ sealed class CallExpression(val callee: Expression, val arguments: Seq[Expressio
 }
 
 object CallExpression {
-	def apply(callee: Expression, arguments: Seq[Expression], loc: Option[SourceLocation]): CallExpression = new CallExpression(callee, arguments, loc)
-	def unapply(callExpression: CallExpression): Option[(Expression, Seq[Expression])] = Some((callExpression.callee, callExpression.arguments))
+	def apply(callee: Callee, arguments: Seq[SpreadableExpression], loc: Option[SourceLocation]): CallExpression = new CallExpression(callee, arguments, loc)
+	def unapply(callExpression: CallExpression): Option[(Callee, Seq[SpreadableExpression])] = Some((callExpression.callee, callExpression.arguments))
 
 	def from(src: Js.Value): CallExpression = {
 		val _obj = src.obj
 		assert(_obj("type").str == "CallExpression")
 
 		new CallExpression(
-			Expression.from(_obj("callee")),
-			_obj("arguments").arr.map(elem => Expression.from(elem)),
+			Callee.from(_obj("callee")),
+			_obj("arguments").arr.map(elem => SpreadableExpression.from(elem)),
 			_obj.get("loc").flatMap(_ match { case Js.Null => None; case some => Some(some)}).map(inner => SourceLocation.from(inner))
 		)
 	}
 }
 
-sealed class NewExpression(val callee: Expression, val arguments: Seq[Expression], loc: Option[SourceLocation]) extends Node(loc) with Expression {
+sealed class NewExpression(val callee: Expression, val arguments: Seq[SpreadableExpression], loc: Option[SourceLocation]) extends Node(loc) with Expression {
 	override def toJSON: Js.Value = Js.Obj(
 			"type" -> Js.Str("NewExpression"),
 			"callee" -> this.callee.toJSON,
@@ -1560,8 +1537,8 @@ sealed class NewExpression(val callee: Expression, val arguments: Seq[Expression
 }
 
 object NewExpression {
-	def apply(callee: Expression, arguments: Seq[Expression], loc: Option[SourceLocation]): NewExpression = new NewExpression(callee, arguments, loc)
-	def unapply(newExpression: NewExpression): Option[(Expression, Seq[Expression])] = Some((newExpression.callee, newExpression.arguments))
+	def apply(callee: Expression, arguments: Seq[SpreadableExpression], loc: Option[SourceLocation]): NewExpression = new NewExpression(callee, arguments, loc)
+	def unapply(newExpression: NewExpression): Option[(Expression, Seq[SpreadableExpression])] = Some((newExpression.callee, newExpression.arguments))
 
 	def from(src: Js.Value): NewExpression = {
 		val _obj = src.obj
@@ -1569,7 +1546,7 @@ object NewExpression {
 
 		new NewExpression(
 			Expression.from(_obj("callee")),
-			_obj("arguments").arr.map(elem => Expression.from(elem)),
+			_obj("arguments").arr.map(elem => SpreadableExpression.from(elem)),
 			_obj.get("loc").flatMap(_ match { case Js.Null => None; case some => Some(some)}).map(inner => SourceLocation.from(inner))
 		)
 	}
@@ -1608,7 +1585,725 @@ object Pattern {
 	def from(src: Js.Value): Pattern = src("type").str match {
 		case "Identifier" => Identifier.from(src)
 		case "MemberExpression" => MemberExpression.from(src)
+		case "ObjectPattern" => ObjectPattern.from(src)
+		case "ArrayPattern" => ArrayPattern.from(src)
+		case "RestElement" => RestElement.from(src)
+		case "AssignmentPattern" => AssignmentPattern.from(src)
 		case discriminant => throw new IllegalArgumentException(s"Unknown type '$discriminant' for Pattern")
+	}
+}
+
+sealed class ForOfStatement(left: ForInTarget, right: Expression, body: Statement, loc: Option[SourceLocation]) extends ForInStatement(left, right, body, loc) {
+	override def toJSON: Js.Value = Js.Obj(
+			"type" -> Js.Str("ForOfStatement"),
+			"left" -> this.left.toJSON,
+			"right" -> this.right.toJSON,
+			"body" -> this.body.toJSON,
+			"loc" -> this.loc.map(inner => inner.toJSON).getOrElse(Js.Null)
+		)
+}
+
+object ForOfStatement {
+	def apply(left: ForInTarget, right: Expression, body: Statement, loc: Option[SourceLocation]): ForOfStatement = new ForOfStatement(left, right, body, loc)
+
+	def from(src: Js.Value): ForOfStatement = {
+		val _obj = src.obj
+		assert(_obj("type").str == "ForOfStatement")
+
+		new ForOfStatement(
+			ForInTarget.from(_obj("left")),
+			Expression.from(_obj("right")),
+			Statement.from(_obj("body")),
+			_obj.get("loc").flatMap(_ match { case Js.Null => None; case some => Some(some)}).map(inner => SourceLocation.from(inner))
+		)
+	}
+}
+
+sealed class Super(loc: Option[SourceLocation]) extends Node(loc) with Callee {
+	override def toJSON: Js.Value = Js.Obj(
+			"type" -> Js.Str("Super"),
+			"loc" -> this.loc.map(inner => inner.toJSON).getOrElse(Js.Null)
+		)
+}
+
+object Super {
+	def apply(loc: Option[SourceLocation]): Super = new Super(loc)
+
+	def from(src: Js.Value): Super = {
+		val _obj = src.obj
+		assert(_obj("type").str == "Super")
+
+		new Super(
+			_obj.get("loc").flatMap(_ match { case Js.Null => None; case some => Some(some)}).map(inner => SourceLocation.from(inner))
+		)
+	}
+}
+
+sealed class SpreadElement(val argument: Expression, loc: Option[SourceLocation]) extends Node(loc) with SpreadableExpression {
+	override def toJSON: Js.Value = Js.Obj(
+			"type" -> Js.Str("SpreadElement"),
+			"argument" -> this.argument.toJSON,
+			"loc" -> this.loc.map(inner => inner.toJSON).getOrElse(Js.Null)
+		)
+}
+
+object SpreadElement {
+	def apply(argument: Expression, loc: Option[SourceLocation]): SpreadElement = new SpreadElement(argument, loc)
+	def unapply(spreadElement: SpreadElement): Option[Expression] = Some(spreadElement.argument)
+
+	def from(src: Js.Value): SpreadElement = {
+		val _obj = src.obj
+		assert(_obj("type").str == "SpreadElement")
+
+		new SpreadElement(
+			Expression.from(_obj("argument")),
+			_obj.get("loc").flatMap(_ match { case Js.Null => None; case some => Some(some)}).map(inner => SourceLocation.from(inner))
+		)
+	}
+}
+
+sealed class ArrowFunctionExpression(val id: Option[Identifier], val params: Seq[Pattern], val body: ArrowFunctionBody, loc: Option[SourceLocation]) extends Node(loc) with Expression {
+	override def toJSON: Js.Value = Js.Obj(
+			"type" -> Js.Str("ArrowFunctionExpression"),
+			"id" -> this.id.map(inner => inner.toJSON).getOrElse(Js.Null),
+			"params" -> Js.Arr(this.params.map(inner => inner.toJSON): _*),
+			"body" -> this.body.toJSON,
+			"loc" -> this.loc.map(inner => inner.toJSON).getOrElse(Js.Null)
+		)
+}
+
+object ArrowFunctionExpression {
+	def apply(id: Option[Identifier], params: Seq[Pattern], body: ArrowFunctionBody, loc: Option[SourceLocation]): ArrowFunctionExpression = new ArrowFunctionExpression(id, params, body, loc)
+	def unapply(arrowFunctionExpression: ArrowFunctionExpression): Option[(Option[Identifier], Seq[Pattern], ArrowFunctionBody)] = Some((arrowFunctionExpression.id, arrowFunctionExpression.params, arrowFunctionExpression.body))
+
+	def from(src: Js.Value): ArrowFunctionExpression = {
+		val _obj = src.obj
+		assert(_obj("type").str == "ArrowFunctionExpression")
+
+		new ArrowFunctionExpression(
+			_obj.get("id").flatMap(_ match { case Js.Null => None; case some => Some(some)}).map(inner => Identifier.from(inner)),
+			_obj("params").arr.map(elem => Pattern.from(elem)),
+			ArrowFunctionBody.from(_obj("body")),
+			_obj.get("loc").flatMap(_ match { case Js.Null => None; case some => Some(some)}).map(inner => SourceLocation.from(inner))
+		)
+	}
+}
+
+sealed class YieldExpression(val argument: Option[Expression], val delegate: Boolean, loc: Option[SourceLocation]) extends Node(loc) with Expression {
+	override def toJSON: Js.Value = Js.Obj(
+			"type" -> Js.Str("YieldExpression"),
+			"argument" -> this.argument.map(inner => inner.toJSON).getOrElse(Js.Null),
+			"delegate" -> (if (this.delegate) Js.True else Js.False),
+			"loc" -> this.loc.map(inner => inner.toJSON).getOrElse(Js.Null)
+		)
+}
+
+object YieldExpression {
+	def apply(argument: Option[Expression], delegate: Boolean, loc: Option[SourceLocation]): YieldExpression = new YieldExpression(argument, delegate, loc)
+	def unapply(yieldExpression: YieldExpression): Option[(Option[Expression], Boolean)] = Some((yieldExpression.argument, yieldExpression.delegate))
+
+	def from(src: Js.Value): YieldExpression = {
+		val _obj = src.obj
+		assert(_obj("type").str == "YieldExpression")
+
+		new YieldExpression(
+			_obj.get("argument").flatMap(_ match { case Js.Null => None; case some => Some(some)}).map(inner => Expression.from(inner)),
+			_obj("delegate").isInstanceOf[Js.True.type],
+			_obj.get("loc").flatMap(_ match { case Js.Null => None; case some => Some(some)}).map(inner => SourceLocation.from(inner))
+		)
+	}
+}
+
+sealed class TemplateLiteral(val quasis: Seq[TemplateElement], val expressions: Seq[Expression], loc: Option[SourceLocation]) extends Node(loc) with Expression {
+	override def toJSON: Js.Value = Js.Obj(
+			"type" -> Js.Str("TemplateLiteral"),
+			"quasis" -> Js.Arr(this.quasis.map(inner => inner.toJSON): _*),
+			"expressions" -> Js.Arr(this.expressions.map(inner => inner.toJSON): _*),
+			"loc" -> this.loc.map(inner => inner.toJSON).getOrElse(Js.Null)
+		)
+}
+
+object TemplateLiteral {
+	def apply(quasis: Seq[TemplateElement], expressions: Seq[Expression], loc: Option[SourceLocation]): TemplateLiteral = new TemplateLiteral(quasis, expressions, loc)
+	def unapply(templateLiteral: TemplateLiteral): Option[(Seq[TemplateElement], Seq[Expression])] = Some((templateLiteral.quasis, templateLiteral.expressions))
+
+	def from(src: Js.Value): TemplateLiteral = {
+		val _obj = src.obj
+		assert(_obj("type").str == "TemplateLiteral")
+
+		new TemplateLiteral(
+			_obj("quasis").arr.map(elem => TemplateElement.from(elem)),
+			_obj("expressions").arr.map(elem => Expression.from(elem)),
+			_obj.get("loc").flatMap(_ match { case Js.Null => None; case some => Some(some)}).map(inner => SourceLocation.from(inner))
+		)
+	}
+}
+
+sealed class TaggedTemplateExpression(val tag: Expression, val quasi: TemplateLiteral, loc: Option[SourceLocation]) extends Node(loc) with Expression {
+	override def toJSON: Js.Value = Js.Obj(
+			"type" -> Js.Str("TaggedTemplateExpression"),
+			"tag" -> this.tag.toJSON,
+			"quasi" -> this.quasi.toJSON,
+			"loc" -> this.loc.map(inner => inner.toJSON).getOrElse(Js.Null)
+		)
+}
+
+object TaggedTemplateExpression {
+	def apply(tag: Expression, quasi: TemplateLiteral, loc: Option[SourceLocation]): TaggedTemplateExpression = new TaggedTemplateExpression(tag, quasi, loc)
+	def unapply(taggedTemplateExpression: TaggedTemplateExpression): Option[(Expression, TemplateLiteral)] = Some((taggedTemplateExpression.tag, taggedTemplateExpression.quasi))
+
+	def from(src: Js.Value): TaggedTemplateExpression = {
+		val _obj = src.obj
+		assert(_obj("type").str == "TaggedTemplateExpression")
+
+		new TaggedTemplateExpression(
+			Expression.from(_obj("tag")),
+			TemplateLiteral.from(_obj("quasi")),
+			_obj.get("loc").flatMap(_ match { case Js.Null => None; case some => Some(some)}).map(inner => SourceLocation.from(inner))
+		)
+	}
+}
+
+sealed class Value(val cooked: String, val raw: String) {
+	def toJSON: Js.Value = Js.Obj(
+			"cooked" -> Js.Str(this.cooked),
+			"raw" -> Js.Str(this.raw)
+		)
+}
+
+object Value {
+	def apply(cooked: String, raw: String): Value = new Value(cooked, raw)
+	def unapply(value: Value): Option[(String, String)] = Some((value.cooked, value.raw))
+
+	def from(src: Js.Value): Value = {
+		val _obj = src.obj
+
+		new Value(
+			_obj("cooked").str.toString,
+			_obj("raw").str.toString
+		)
+	}
+}
+
+sealed class TemplateElement(val tail: Boolean, val value: Value, loc: Option[SourceLocation]) extends Node(loc) {
+	override def toJSON: Js.Value = Js.Obj(
+			"type" -> Js.Str("TemplateElement"),
+			"tail" -> (if (this.tail) Js.True else Js.False),
+			"value" -> this.value.toJSON,
+			"loc" -> this.loc.map(inner => inner.toJSON).getOrElse(Js.Null)
+		)
+}
+
+object TemplateElement {
+	def apply(tail: Boolean, value: Value, loc: Option[SourceLocation]): TemplateElement = new TemplateElement(tail, value, loc)
+	def unapply(templateElement: TemplateElement): Option[(Boolean, Value)] = Some((templateElement.tail, templateElement.value))
+
+	def from(src: Js.Value): TemplateElement = {
+		val _obj = src.obj
+		assert(_obj("type").str == "TemplateElement")
+
+		new TemplateElement(
+			_obj("tail").isInstanceOf[Js.True.type],
+			Value.from(_obj("value")),
+			_obj.get("loc").flatMap(_ match { case Js.Null => None; case some => Some(some)}).map(inner => SourceLocation.from(inner))
+		)
+	}
+}
+
+sealed class AssignmentProperty(val value: Pattern, loc: Option[SourceLocation]) extends Node(loc) {
+	override def toJSON: Js.Value = Js.Obj(
+			"type" -> Js.Str("Property"),
+			"value" -> this.value.toJSON,
+			"loc" -> this.loc.map(inner => inner.toJSON).getOrElse(Js.Null)
+		)
+}
+
+object AssignmentProperty {
+	def apply(value: Pattern, loc: Option[SourceLocation]): AssignmentProperty = new AssignmentProperty(value, loc)
+	def unapply(assignmentProperty: AssignmentProperty): Option[Pattern] = Some(assignmentProperty.value)
+
+	def from(src: Js.Value): AssignmentProperty = {
+		val _obj = src.obj
+		assert(_obj("type").str == "Property")
+
+		new AssignmentProperty(
+			Pattern.from(_obj("value")),
+			_obj.get("loc").flatMap(_ match { case Js.Null => None; case some => Some(some)}).map(inner => SourceLocation.from(inner))
+		)
+	}
+}
+
+sealed class ObjectPattern(val properties: Seq[AssignmentProperty], loc: Option[SourceLocation]) extends Node(loc) with Pattern {
+	override def toJSON: Js.Value = Js.Obj(
+			"type" -> Js.Str("ObjectPattern"),
+			"properties" -> Js.Arr(this.properties.map(inner => inner.toJSON): _*),
+			"loc" -> this.loc.map(inner => inner.toJSON).getOrElse(Js.Null)
+		)
+}
+
+object ObjectPattern {
+	def apply(properties: Seq[AssignmentProperty], loc: Option[SourceLocation]): ObjectPattern = new ObjectPattern(properties, loc)
+	def unapply(objectPattern: ObjectPattern): Option[Seq[AssignmentProperty]] = Some(objectPattern.properties)
+
+	def from(src: Js.Value): ObjectPattern = {
+		val _obj = src.obj
+		assert(_obj("type").str == "ObjectPattern")
+
+		new ObjectPattern(
+			_obj("properties").arr.map(elem => AssignmentProperty.from(elem)),
+			_obj.get("loc").flatMap(_ match { case Js.Null => None; case some => Some(some)}).map(inner => SourceLocation.from(inner))
+		)
+	}
+}
+
+sealed class ArrayPattern(val elements: Seq[Option[Pattern]], loc: Option[SourceLocation]) extends Node(loc) with Pattern {
+	override def toJSON: Js.Value = Js.Obj(
+			"type" -> Js.Str("ArrayPattern"),
+			"elements" -> Js.Arr(this.elements.map(inner => inner.map(inner => inner.toJSON).getOrElse(Js.Null)): _*),
+			"loc" -> this.loc.map(inner => inner.toJSON).getOrElse(Js.Null)
+		)
+}
+
+object ArrayPattern {
+	def apply(elements: Seq[Option[Pattern]], loc: Option[SourceLocation]): ArrayPattern = new ArrayPattern(elements, loc)
+	def unapply(arrayPattern: ArrayPattern): Option[Seq[Option[Pattern]]] = Some(arrayPattern.elements)
+
+	def from(src: Js.Value): ArrayPattern = {
+		val _obj = src.obj
+		assert(_obj("type").str == "ArrayPattern")
+
+		new ArrayPattern(
+			_obj("elements").arr.map(elem => (elem match { case Js.Null => None; case some => Some(some)}).map(inner => Pattern.from(inner))),
+			_obj.get("loc").flatMap(_ match { case Js.Null => None; case some => Some(some)}).map(inner => SourceLocation.from(inner))
+		)
+	}
+}
+
+sealed class RestElement(val argument: Pattern, loc: Option[SourceLocation]) extends Node(loc) with Pattern {
+	override def toJSON: Js.Value = Js.Obj(
+			"type" -> Js.Str("RestElement"),
+			"argument" -> this.argument.toJSON,
+			"loc" -> this.loc.map(inner => inner.toJSON).getOrElse(Js.Null)
+		)
+}
+
+object RestElement {
+	def apply(argument: Pattern, loc: Option[SourceLocation]): RestElement = new RestElement(argument, loc)
+	def unapply(restElement: RestElement): Option[Pattern] = Some(restElement.argument)
+
+	def from(src: Js.Value): RestElement = {
+		val _obj = src.obj
+		assert(_obj("type").str == "RestElement")
+
+		new RestElement(
+			Pattern.from(_obj("argument")),
+			_obj.get("loc").flatMap(_ match { case Js.Null => None; case some => Some(some)}).map(inner => SourceLocation.from(inner))
+		)
+	}
+}
+
+sealed class AssignmentPattern(val left: Pattern, val right: Expression, loc: Option[SourceLocation]) extends Node(loc) with Pattern {
+	override def toJSON: Js.Value = Js.Obj(
+			"type" -> Js.Str("AssignmentPattern"),
+			"left" -> this.left.toJSON,
+			"right" -> this.right.toJSON,
+			"loc" -> this.loc.map(inner => inner.toJSON).getOrElse(Js.Null)
+		)
+}
+
+object AssignmentPattern {
+	def apply(left: Pattern, right: Expression, loc: Option[SourceLocation]): AssignmentPattern = new AssignmentPattern(left, right, loc)
+	def unapply(assignmentPattern: AssignmentPattern): Option[(Pattern, Expression)] = Some((assignmentPattern.left, assignmentPattern.right))
+
+	def from(src: Js.Value): AssignmentPattern = {
+		val _obj = src.obj
+		assert(_obj("type").str == "AssignmentPattern")
+
+		new AssignmentPattern(
+			Pattern.from(_obj("left")),
+			Expression.from(_obj("right")),
+			_obj.get("loc").flatMap(_ match { case Js.Null => None; case some => Some(some)}).map(inner => SourceLocation.from(inner))
+		)
+	}
+}
+
+sealed class Class(val id: Option[Identifier], val superClass: Option[Expression], val body: ClassBody, loc: Option[SourceLocation]) extends Node(loc) {
+	override def toJSON: Js.Value = Js.Obj(
+			"id" -> this.id.map(inner => inner.toJSON).getOrElse(Js.Null),
+			"superClass" -> this.superClass.map(inner => inner.toJSON).getOrElse(Js.Null),
+			"body" -> this.body.toJSON,
+			"loc" -> this.loc.map(inner => inner.toJSON).getOrElse(Js.Null)
+		)
+}
+
+object Class {
+	def apply(id: Option[Identifier], superClass: Option[Expression], body: ClassBody, loc: Option[SourceLocation]): Class = new Class(id, superClass, body, loc)
+	def unapply(clazz: Class): Option[(Option[Identifier], Option[Expression], ClassBody)] = Some((clazz.id, clazz.superClass, clazz.body))
+
+	def from(src: Js.Value): Class = {
+		val _obj = src.obj
+
+		new Class(
+			_obj.get("id").flatMap(_ match { case Js.Null => None; case some => Some(some)}).map(inner => Identifier.from(inner)),
+			_obj.get("superClass").flatMap(_ match { case Js.Null => None; case some => Some(some)}).map(inner => Expression.from(inner)),
+			ClassBody.from(_obj("body")),
+			_obj.get("loc").flatMap(_ match { case Js.Null => None; case some => Some(some)}).map(inner => SourceLocation.from(inner))
+		)
+	}
+}
+
+sealed class ClassBody(val body: Seq[MethodDefinition], loc: Option[SourceLocation]) extends Node(loc) {
+	override def toJSON: Js.Value = Js.Obj(
+			"type" -> Js.Str("ClassBody"),
+			"body" -> Js.Arr(this.body.map(inner => inner.toJSON): _*),
+			"loc" -> this.loc.map(inner => inner.toJSON).getOrElse(Js.Null)
+		)
+}
+
+object ClassBody {
+	def apply(body: Seq[MethodDefinition], loc: Option[SourceLocation]): ClassBody = new ClassBody(body, loc)
+	def unapply(classBody: ClassBody): Option[Seq[MethodDefinition]] = Some(classBody.body)
+
+	def from(src: Js.Value): ClassBody = {
+		val _obj = src.obj
+		assert(_obj("type").str == "ClassBody")
+
+		new ClassBody(
+			_obj("body").arr.map(elem => MethodDefinition.from(elem)),
+			_obj.get("loc").flatMap(_ match { case Js.Null => None; case some => Some(some)}).map(inner => SourceLocation.from(inner))
+		)
+	}
+}
+
+sealed class MethodDefinition(val key: Expression, val value: FunctionExpression, val kind: MethodKind, val computed: Boolean, val static: Boolean, loc: Option[SourceLocation]) extends Node(loc) {
+	override def toJSON: Js.Value = Js.Obj(
+			"type" -> Js.Str("MethodDefinition"),
+			"key" -> this.key.toJSON,
+			"value" -> this.value.toJSON,
+			"kind" -> this.kind.toJSON,
+			"computed" -> (if (this.computed) Js.True else Js.False),
+			"static" -> (if (this.static) Js.True else Js.False),
+			"loc" -> this.loc.map(inner => inner.toJSON).getOrElse(Js.Null)
+		)
+}
+
+object MethodDefinition {
+	def apply(key: Expression, value: FunctionExpression, kind: MethodKind, computed: Boolean, static: Boolean, loc: Option[SourceLocation]): MethodDefinition = new MethodDefinition(key, value, kind, computed, static, loc)
+	def unapply(methodDefinition: MethodDefinition): Option[(Expression, FunctionExpression, MethodKind, Boolean, Boolean)] = Some((methodDefinition.key, methodDefinition.value, methodDefinition.kind, methodDefinition.computed, methodDefinition.static))
+
+	def from(src: Js.Value): MethodDefinition = {
+		val _obj = src.obj
+		assert(_obj("type").str == "MethodDefinition")
+
+		new MethodDefinition(
+			Expression.from(_obj("key")),
+			FunctionExpression.from(_obj("value")),
+			MethodKind.from(_obj("kind")),
+			_obj("computed").isInstanceOf[Js.True.type],
+			_obj("static").isInstanceOf[Js.True.type],
+			_obj.get("loc").flatMap(_ match { case Js.Null => None; case some => Some(some)}).map(inner => SourceLocation.from(inner))
+		)
+	}
+}
+
+sealed class ClassDeclaration(id: Option[Identifier], superClass: Option[Expression], body: ClassBody, loc: Option[SourceLocation]) extends Class(id, superClass, body, loc) with Declaration {
+	override def toJSON: Js.Value = Js.Obj(
+			"type" -> Js.Str("ClassDeclaration"),
+			"id" -> this.id.map(inner => inner.toJSON).getOrElse(Js.Null),
+			"superClass" -> this.superClass.map(inner => inner.toJSON).getOrElse(Js.Null),
+			"body" -> this.body.toJSON,
+			"loc" -> this.loc.map(inner => inner.toJSON).getOrElse(Js.Null)
+		)
+}
+
+object ClassDeclaration {
+	def apply(id: Option[Identifier], superClass: Option[Expression], body: ClassBody, loc: Option[SourceLocation]): ClassDeclaration = new ClassDeclaration(id, superClass, body, loc)
+
+	def from(src: Js.Value): ClassDeclaration = {
+		val _obj = src.obj
+		assert(_obj("type").str == "ClassDeclaration")
+
+		new ClassDeclaration(
+			_obj.get("id").flatMap(_ match { case Js.Null => None; case some => Some(some)}).map(inner => Identifier.from(inner)),
+			_obj.get("superClass").flatMap(_ match { case Js.Null => None; case some => Some(some)}).map(inner => Expression.from(inner)),
+			ClassBody.from(_obj("body")),
+			_obj.get("loc").flatMap(_ match { case Js.Null => None; case some => Some(some)}).map(inner => SourceLocation.from(inner))
+		)
+	}
+}
+
+sealed class ClassExpression(id: Option[Identifier], superClass: Option[Expression], body: ClassBody, loc: Option[SourceLocation]) extends Class(id, superClass, body, loc) with Expression {
+	override def toJSON: Js.Value = Js.Obj(
+			"type" -> Js.Str("ClassExpression"),
+			"id" -> this.id.map(inner => inner.toJSON).getOrElse(Js.Null),
+			"superClass" -> this.superClass.map(inner => inner.toJSON).getOrElse(Js.Null),
+			"body" -> this.body.toJSON,
+			"loc" -> this.loc.map(inner => inner.toJSON).getOrElse(Js.Null)
+		)
+}
+
+object ClassExpression {
+	def apply(id: Option[Identifier], superClass: Option[Expression], body: ClassBody, loc: Option[SourceLocation]): ClassExpression = new ClassExpression(id, superClass, body, loc)
+
+	def from(src: Js.Value): ClassExpression = {
+		val _obj = src.obj
+		assert(_obj("type").str == "ClassExpression")
+
+		new ClassExpression(
+			_obj.get("id").flatMap(_ match { case Js.Null => None; case some => Some(some)}).map(inner => Identifier.from(inner)),
+			_obj.get("superClass").flatMap(_ match { case Js.Null => None; case some => Some(some)}).map(inner => Expression.from(inner)),
+			ClassBody.from(_obj("body")),
+			_obj.get("loc").flatMap(_ match { case Js.Null => None; case some => Some(some)}).map(inner => SourceLocation.from(inner))
+		)
+	}
+}
+
+sealed class MetaProperty(val meta: Identifier, val property: Identifier, loc: Option[SourceLocation]) extends Node(loc) with Expression {
+	override def toJSON: Js.Value = Js.Obj(
+			"type" -> Js.Str("MetaProperty"),
+			"meta" -> this.meta.toJSON,
+			"property" -> this.property.toJSON,
+			"loc" -> this.loc.map(inner => inner.toJSON).getOrElse(Js.Null)
+		)
+}
+
+object MetaProperty {
+	def apply(meta: Identifier, property: Identifier, loc: Option[SourceLocation]): MetaProperty = new MetaProperty(meta, property, loc)
+	def unapply(metaProperty: MetaProperty): Option[(Identifier, Identifier)] = Some((metaProperty.meta, metaProperty.property))
+
+	def from(src: Js.Value): MetaProperty = {
+		val _obj = src.obj
+		assert(_obj("type").str == "MetaProperty")
+
+		new MetaProperty(
+			Identifier.from(_obj("meta")),
+			Identifier.from(_obj("property")),
+			_obj.get("loc").flatMap(_ match { case Js.Null => None; case some => Some(some)}).map(inner => SourceLocation.from(inner))
+		)
+	}
+}
+
+sealed trait ModuleDeclaration extends ModuleStatement {
+	this: Node =>
+
+	def toJSON: Js.Value
+}
+
+object ModuleDeclaration {
+	def from(src: Js.Value): ModuleDeclaration = src("type").str match {
+		case "ImportDeclaration" => ImportDeclaration.from(src)
+		case "ExportNamedDeclaration" => ExportNamedDeclaration.from(src)
+		case "ExportDefaultDeclaration" => ExportDefaultDeclaration.from(src)
+		case "ExportAllDeclaration" => ExportAllDeclaration.from(src)
+		case discriminant => throw new IllegalArgumentException(s"Unknown type '$discriminant' for ModuleDeclaration")
+	}
+}
+
+sealed abstract class ModuleSpecifier(val local: Identifier, loc: Option[SourceLocation]) extends Node(loc) {
+	def toJSON: Js.Value
+}
+
+object ModuleSpecifier {
+	def unapply(moduleSpecifier: ModuleSpecifier): Option[Identifier] = Some(moduleSpecifier.local)
+
+	def from(src: Js.Value): ModuleSpecifier = src("type").str match {
+		case "ExportSpecifier" => ExportSpecifier.from(src)
+		case "ImportSpecifier" => ImportSpecifier.from(src)
+		case "ImportDefaultSpecifier" => ImportDefaultSpecifier.from(src)
+		case "ImportNamespaceSpecifier" => ImportNamespaceSpecifier.from(src)
+		case discriminant => throw new IllegalArgumentException(s"Unknown type '$discriminant' for ModuleSpecifier")
+	}
+}
+
+sealed class ImportDeclaration(val specifiers: Seq[ModuleImportSpecifier], val source: Literal, loc: Option[SourceLocation]) extends Node(loc) with ModuleDeclaration {
+	override def toJSON: Js.Value = Js.Obj(
+			"type" -> Js.Str("ImportDeclaration"),
+			"specifiers" -> Js.Arr(this.specifiers.map(inner => inner.toJSON): _*),
+			"source" -> this.source.toJSON,
+			"loc" -> this.loc.map(inner => inner.toJSON).getOrElse(Js.Null)
+		)
+}
+
+object ImportDeclaration {
+	def apply(specifiers: Seq[ModuleImportSpecifier], source: Literal, loc: Option[SourceLocation]): ImportDeclaration = new ImportDeclaration(specifiers, source, loc)
+	def unapply(importDeclaration: ImportDeclaration): Option[(Seq[ModuleImportSpecifier], Literal)] = Some((importDeclaration.specifiers, importDeclaration.source))
+
+	def from(src: Js.Value): ImportDeclaration = {
+		val _obj = src.obj
+		assert(_obj("type").str == "ImportDeclaration")
+
+		new ImportDeclaration(
+			_obj("specifiers").arr.map(elem => ModuleImportSpecifier.from(elem)),
+			Literal.from(_obj("source")),
+			_obj.get("loc").flatMap(_ match { case Js.Null => None; case some => Some(some)}).map(inner => SourceLocation.from(inner))
+		)
+	}
+}
+
+sealed class ImportSpecifier(val imported: Identifier, local: Identifier, loc: Option[SourceLocation]) extends ModuleSpecifier(local, loc) with ModuleImportSpecifier {
+	override def toJSON: Js.Value = Js.Obj(
+			"type" -> Js.Str("ImportSpecifier"),
+			"imported" -> this.imported.toJSON,
+			"local" -> this.local.toJSON,
+			"loc" -> this.loc.map(inner => inner.toJSON).getOrElse(Js.Null)
+		)
+}
+
+object ImportSpecifier {
+	def apply(imported: Identifier, local: Identifier, loc: Option[SourceLocation]): ImportSpecifier = new ImportSpecifier(imported, local, loc)
+	def unapply(importSpecifier: ImportSpecifier): Option[Identifier] = Some(importSpecifier.imported)
+
+	def from(src: Js.Value): ImportSpecifier = {
+		val _obj = src.obj
+		assert(_obj("type").str == "ImportSpecifier")
+
+		new ImportSpecifier(
+			Identifier.from(_obj("imported")),
+			Identifier.from(_obj("local")),
+			_obj.get("loc").flatMap(_ match { case Js.Null => None; case some => Some(some)}).map(inner => SourceLocation.from(inner))
+		)
+	}
+}
+
+sealed class ImportDefaultSpecifier(local: Identifier, loc: Option[SourceLocation]) extends ModuleSpecifier(local, loc) with ModuleImportSpecifier {
+	override def toJSON: Js.Value = Js.Obj(
+			"type" -> Js.Str("ImportDefaultSpecifier"),
+			"local" -> this.local.toJSON,
+			"loc" -> this.loc.map(inner => inner.toJSON).getOrElse(Js.Null)
+		)
+}
+
+object ImportDefaultSpecifier {
+	def apply(local: Identifier, loc: Option[SourceLocation]): ImportDefaultSpecifier = new ImportDefaultSpecifier(local, loc)
+
+	def from(src: Js.Value): ImportDefaultSpecifier = {
+		val _obj = src.obj
+		assert(_obj("type").str == "ImportDefaultSpecifier")
+
+		new ImportDefaultSpecifier(
+			Identifier.from(_obj("local")),
+			_obj.get("loc").flatMap(_ match { case Js.Null => None; case some => Some(some)}).map(inner => SourceLocation.from(inner))
+		)
+	}
+}
+
+sealed class ImportNamespaceSpecifier(local: Identifier, loc: Option[SourceLocation]) extends ModuleSpecifier(local, loc) with ModuleImportSpecifier {
+	override def toJSON: Js.Value = Js.Obj(
+			"type" -> Js.Str("ImportNamespaceSpecifier"),
+			"local" -> this.local.toJSON,
+			"loc" -> this.loc.map(inner => inner.toJSON).getOrElse(Js.Null)
+		)
+}
+
+object ImportNamespaceSpecifier {
+	def apply(local: Identifier, loc: Option[SourceLocation]): ImportNamespaceSpecifier = new ImportNamespaceSpecifier(local, loc)
+
+	def from(src: Js.Value): ImportNamespaceSpecifier = {
+		val _obj = src.obj
+		assert(_obj("type").str == "ImportNamespaceSpecifier")
+
+		new ImportNamespaceSpecifier(
+			Identifier.from(_obj("local")),
+			_obj.get("loc").flatMap(_ match { case Js.Null => None; case some => Some(some)}).map(inner => SourceLocation.from(inner))
+		)
+	}
+}
+
+sealed class ExportNamedDeclaration(val declaration: Option[Declaration], val specifiers: Seq[ExportSpecifier], val source: Option[Literal], loc: Option[SourceLocation]) extends Node(loc) with ModuleDeclaration {
+	override def toJSON: Js.Value = Js.Obj(
+			"type" -> Js.Str("ExportNamedDeclaration"),
+			"declaration" -> this.declaration.map(inner => inner.toJSON).getOrElse(Js.Null),
+			"specifiers" -> Js.Arr(this.specifiers.map(inner => inner.toJSON): _*),
+			"source" -> this.source.map(inner => inner.toJSON).getOrElse(Js.Null),
+			"loc" -> this.loc.map(inner => inner.toJSON).getOrElse(Js.Null)
+		)
+}
+
+object ExportNamedDeclaration {
+	def apply(declaration: Option[Declaration], specifiers: Seq[ExportSpecifier], source: Option[Literal], loc: Option[SourceLocation]): ExportNamedDeclaration = new ExportNamedDeclaration(declaration, specifiers, source, loc)
+	def unapply(exportNamedDeclaration: ExportNamedDeclaration): Option[(Option[Declaration], Seq[ExportSpecifier], Option[Literal])] = Some((exportNamedDeclaration.declaration, exportNamedDeclaration.specifiers, exportNamedDeclaration.source))
+
+	def from(src: Js.Value): ExportNamedDeclaration = {
+		val _obj = src.obj
+		assert(_obj("type").str == "ExportNamedDeclaration")
+
+		new ExportNamedDeclaration(
+			_obj.get("declaration").flatMap(_ match { case Js.Null => None; case some => Some(some)}).map(inner => Declaration.from(inner)),
+			_obj("specifiers").arr.map(elem => ExportSpecifier.from(elem)),
+			_obj.get("source").flatMap(_ match { case Js.Null => None; case some => Some(some)}).map(inner => Literal.from(inner)),
+			_obj.get("loc").flatMap(_ match { case Js.Null => None; case some => Some(some)}).map(inner => SourceLocation.from(inner))
+		)
+	}
+}
+
+sealed class ExportSpecifier(val exported: Identifier, local: Identifier, loc: Option[SourceLocation]) extends ModuleSpecifier(local, loc) {
+	override def toJSON: Js.Value = Js.Obj(
+			"type" -> Js.Str("ExportSpecifier"),
+			"exported" -> this.exported.toJSON,
+			"local" -> this.local.toJSON,
+			"loc" -> this.loc.map(inner => inner.toJSON).getOrElse(Js.Null)
+		)
+}
+
+object ExportSpecifier {
+	def apply(exported: Identifier, local: Identifier, loc: Option[SourceLocation]): ExportSpecifier = new ExportSpecifier(exported, local, loc)
+	def unapply(exportSpecifier: ExportSpecifier): Option[Identifier] = Some(exportSpecifier.exported)
+
+	def from(src: Js.Value): ExportSpecifier = {
+		val _obj = src.obj
+		assert(_obj("type").str == "ExportSpecifier")
+
+		new ExportSpecifier(
+			Identifier.from(_obj("exported")),
+			Identifier.from(_obj("local")),
+			_obj.get("loc").flatMap(_ match { case Js.Null => None; case some => Some(some)}).map(inner => SourceLocation.from(inner))
+		)
+	}
+}
+
+sealed class ExportDefaultDeclaration(val declaration: Exportable, loc: Option[SourceLocation]) extends Node(loc) with ModuleDeclaration {
+	override def toJSON: Js.Value = Js.Obj(
+			"type" -> Js.Str("ExportDefaultDeclaration"),
+			"declaration" -> this.declaration.toJSON,
+			"loc" -> this.loc.map(inner => inner.toJSON).getOrElse(Js.Null)
+		)
+}
+
+object ExportDefaultDeclaration {
+	def apply(declaration: Exportable, loc: Option[SourceLocation]): ExportDefaultDeclaration = new ExportDefaultDeclaration(declaration, loc)
+	def unapply(exportDefaultDeclaration: ExportDefaultDeclaration): Option[Exportable] = Some(exportDefaultDeclaration.declaration)
+
+	def from(src: Js.Value): ExportDefaultDeclaration = {
+		val _obj = src.obj
+		assert(_obj("type").str == "ExportDefaultDeclaration")
+
+		new ExportDefaultDeclaration(
+			Exportable.from(_obj("declaration")),
+			_obj.get("loc").flatMap(_ match { case Js.Null => None; case some => Some(some)}).map(inner => SourceLocation.from(inner))
+		)
+	}
+}
+
+sealed class ExportAllDeclaration(val source: Literal, loc: Option[SourceLocation]) extends Node(loc) with ModuleDeclaration {
+	override def toJSON: Js.Value = Js.Obj(
+			"type" -> Js.Str("ExportAllDeclaration"),
+			"source" -> this.source.toJSON,
+			"loc" -> this.loc.map(inner => inner.toJSON).getOrElse(Js.Null)
+		)
+}
+
+object ExportAllDeclaration {
+	def apply(source: Literal, loc: Option[SourceLocation]): ExportAllDeclaration = new ExportAllDeclaration(source, loc)
+	def unapply(exportAllDeclaration: ExportAllDeclaration): Option[Literal] = Some(exportAllDeclaration.source)
+
+	def from(src: Js.Value): ExportAllDeclaration = {
+		val _obj = src.obj
+		assert(_obj("type").str == "ExportAllDeclaration")
+
+		new ExportAllDeclaration(
+			Literal.from(_obj("source")),
+			_obj.get("loc").flatMap(_ match { case Js.Null => None; case some => Some(some)}).map(inner => SourceLocation.from(inner))
+		)
 	}
 }
 
@@ -1785,6 +2480,12 @@ object ForInit {
 		case "CallExpression" => CallExpression.from(src)
 		case "NewExpression" => NewExpression.from(src)
 		case "SequenceExpression" => SequenceExpression.from(src)
+		case "ArrowFunctionExpression" => ArrowFunctionExpression.from(src)
+		case "YieldExpression" => YieldExpression.from(src)
+		case "TemplateLiteral" => TemplateLiteral.from(src)
+		case "TaggedTemplateExpression" => TaggedTemplateExpression.from(src)
+		case "ClassExpression" => ClassExpression.from(src)
+		case "MetaProperty" => MetaProperty.from(src)
 		case discriminant => throw new IllegalArgumentException(s"Unknown type '$discriminant' for ForInit")
 	}
 }
@@ -1800,6 +2501,10 @@ object ForInTarget {
 		case "VariableDeclaration" => VariableDeclaration.from(src)
 		case "Identifier" => Identifier.from(src)
 		case "MemberExpression" => MemberExpression.from(src)
+		case "ObjectPattern" => ObjectPattern.from(src)
+		case "ArrayPattern" => ArrayPattern.from(src)
+		case "RestElement" => RestElement.from(src)
+		case "AssignmentPattern" => AssignmentPattern.from(src)
 		case discriminant => throw new IllegalArgumentException(s"Unknown type '$discriminant' for ForInTarget")
 	}
 }
@@ -1832,7 +2537,290 @@ object AssignmentTarget {
 		case "CallExpression" => CallExpression.from(src)
 		case "NewExpression" => NewExpression.from(src)
 		case "SequenceExpression" => SequenceExpression.from(src)
+		case "ArrowFunctionExpression" => ArrowFunctionExpression.from(src)
+		case "YieldExpression" => YieldExpression.from(src)
+		case "TemplateLiteral" => TemplateLiteral.from(src)
+		case "TaggedTemplateExpression" => TaggedTemplateExpression.from(src)
+		case "ClassExpression" => ClassExpression.from(src)
+		case "MetaProperty" => MetaProperty.from(src)
+		case "ObjectPattern" => ObjectPattern.from(src)
+		case "ArrayPattern" => ArrayPattern.from(src)
+		case "RestElement" => RestElement.from(src)
+		case "AssignmentPattern" => AssignmentPattern.from(src)
 		case discriminant => throw new IllegalArgumentException(s"Unknown type '$discriminant' for AssignmentTarget")
+	}
+}
+
+sealed trait ModuleStatement {
+	this: Node =>
+
+	def toJSON: Js.Value
+}
+
+object ModuleStatement {
+	def from(src: Js.Value): ModuleStatement = src("type").str match {
+		case "ExpressionStatement" if !src.obj.contains("directive") => ExpressionStatement.from(src)
+		case "ExpressionStatement" if src.obj.contains("directive") => Directive.from(src)
+		case "BlockStatement" => BlockStatement.from(src)
+		case "EmptyStatement" => EmptyStatement.from(src)
+		case "DebuggerStatement" => DebuggerStatement.from(src)
+		case "WithStatement" => WithStatement.from(src)
+		case "ReturnStatement" => ReturnStatement.from(src)
+		case "LabeledStatement" => LabeledStatement.from(src)
+		case "BreakStatement" => BreakStatement.from(src)
+		case "ContinueStatement" => ContinueStatement.from(src)
+		case "IfStatement" => IfStatement.from(src)
+		case "SwitchStatement" => SwitchStatement.from(src)
+		case "ThrowStatement" => ThrowStatement.from(src)
+		case "TryStatement" => TryStatement.from(src)
+		case "WhileStatement" => WhileStatement.from(src)
+		case "DoWhileStatement" => DoWhileStatement.from(src)
+		case "ForStatement" => ForStatement.from(src)
+		case "ForInStatement" => ForInStatement.from(src)
+		case "ForOfStatement" => ForOfStatement.from(src)
+		case "FunctionDeclaration" => FunctionDeclaration.from(src)
+		case "VariableDeclaration" => VariableDeclaration.from(src)
+		case "ClassDeclaration" => ClassDeclaration.from(src)
+		case "ImportDeclaration" => ImportDeclaration.from(src)
+		case "ExportNamedDeclaration" => ExportNamedDeclaration.from(src)
+		case "ExportDefaultDeclaration" => ExportDefaultDeclaration.from(src)
+		case "ExportAllDeclaration" => ExportAllDeclaration.from(src)
+		case discriminant => throw new IllegalArgumentException(s"Unknown type '$discriminant' for ModuleStatement")
+	}
+}
+
+sealed abstract class VariableDeclarationKind {
+	def toJSON: Js.Str
+}
+
+object VariableDeclarationKind {
+	final case object `var` extends VariableDeclarationKind {
+		override def toJSON: Js.Str = Js.Str("var")
+		override def toString: String ="VariableDeclarationKind[var]"
+	}
+
+	final case object `let` extends VariableDeclarationKind {
+		override def toJSON: Js.Str = Js.Str("let")
+		override def toString: String ="VariableDeclarationKind[let]"
+	}
+
+	final case object `const` extends VariableDeclarationKind {
+		override def toJSON: Js.Str = Js.Str("const")
+		override def toString: String ="VariableDeclarationKind[const]"
+	}
+
+
+	def from(src: Js.Value): VariableDeclarationKind = src.str match {
+		case "var" => `var`
+		case "let" => `let`
+		case "const" => `const`
+	}
+}
+
+sealed trait SpreadableExpression {
+	this: Node =>
+
+	def toJSON: Js.Value
+}
+
+object SpreadableExpression {
+	def from(src: Js.Value): SpreadableExpression = src("type").str match {
+		case "Identifier" => Identifier.from(src)
+		case "Literal" if src.obj.contains("regex") => RegExpLiteral.from(src)
+		case "Literal" if src.obj("value").isInstanceOf[Js.True.type] || src.obj("value").isInstanceOf[Js.False.type] => BooleanLiteral.from(src)
+		case "Literal" if src.obj("value").isInstanceOf[Js.Num] => NumberLiteral.from(src)
+		case "Literal" if src.obj("value").isInstanceOf[Js.Str] && !src.obj.contains("regex") => StringLiteral.from(src)
+		case "Literal" if src.obj("value").isInstanceOf[Js.Null.type] => NullLiteral.from(src)
+		case "ThisExpression" => ThisExpression.from(src)
+		case "ArrayExpression" => ArrayExpression.from(src)
+		case "ObjectExpression" => ObjectExpression.from(src)
+		case "FunctionExpression" => FunctionExpression.from(src)
+		case "UnaryExpression" => UnaryExpression.from(src)
+		case "UpdateExpression" => UpdateExpression.from(src)
+		case "BinaryExpression" => BinaryExpression.from(src)
+		case "AssignmentExpression" => AssignmentExpression.from(src)
+		case "LogicalExpression" => LogicalExpression.from(src)
+		case "MemberExpression" => MemberExpression.from(src)
+		case "ConditionalExpression" => ConditionalExpression.from(src)
+		case "CallExpression" => CallExpression.from(src)
+		case "NewExpression" => NewExpression.from(src)
+		case "SequenceExpression" => SequenceExpression.from(src)
+		case "ArrowFunctionExpression" => ArrowFunctionExpression.from(src)
+		case "YieldExpression" => YieldExpression.from(src)
+		case "TemplateLiteral" => TemplateLiteral.from(src)
+		case "TaggedTemplateExpression" => TaggedTemplateExpression.from(src)
+		case "ClassExpression" => ClassExpression.from(src)
+		case "MetaProperty" => MetaProperty.from(src)
+		case "SpreadElement" => SpreadElement.from(src)
+		case discriminant => throw new IllegalArgumentException(s"Unknown type '$discriminant' for SpreadableExpression")
+	}
+}
+
+sealed trait Callee {
+	this: Node =>
+
+	def toJSON: Js.Value
+}
+
+object Callee {
+	def from(src: Js.Value): Callee = src("type").str match {
+		case "Identifier" => Identifier.from(src)
+		case "Literal" if src.obj.contains("regex") => RegExpLiteral.from(src)
+		case "Literal" if src.obj("value").isInstanceOf[Js.True.type] || src.obj("value").isInstanceOf[Js.False.type] => BooleanLiteral.from(src)
+		case "Literal" if src.obj("value").isInstanceOf[Js.Num] => NumberLiteral.from(src)
+		case "Literal" if src.obj("value").isInstanceOf[Js.Str] && !src.obj.contains("regex") => StringLiteral.from(src)
+		case "Literal" if src.obj("value").isInstanceOf[Js.Null.type] => NullLiteral.from(src)
+		case "ThisExpression" => ThisExpression.from(src)
+		case "ArrayExpression" => ArrayExpression.from(src)
+		case "ObjectExpression" => ObjectExpression.from(src)
+		case "FunctionExpression" => FunctionExpression.from(src)
+		case "UnaryExpression" => UnaryExpression.from(src)
+		case "UpdateExpression" => UpdateExpression.from(src)
+		case "BinaryExpression" => BinaryExpression.from(src)
+		case "AssignmentExpression" => AssignmentExpression.from(src)
+		case "LogicalExpression" => LogicalExpression.from(src)
+		case "MemberExpression" => MemberExpression.from(src)
+		case "ConditionalExpression" => ConditionalExpression.from(src)
+		case "CallExpression" => CallExpression.from(src)
+		case "NewExpression" => NewExpression.from(src)
+		case "SequenceExpression" => SequenceExpression.from(src)
+		case "ArrowFunctionExpression" => ArrowFunctionExpression.from(src)
+		case "YieldExpression" => YieldExpression.from(src)
+		case "TemplateLiteral" => TemplateLiteral.from(src)
+		case "TaggedTemplateExpression" => TaggedTemplateExpression.from(src)
+		case "ClassExpression" => ClassExpression.from(src)
+		case "MetaProperty" => MetaProperty.from(src)
+		case "Super" => Super.from(src)
+		case discriminant => throw new IllegalArgumentException(s"Unknown type '$discriminant' for Callee")
+	}
+}
+
+sealed trait ArrowFunctionBody {
+	this: Node =>
+
+	def toJSON: Js.Value
+}
+
+object ArrowFunctionBody {
+	def from(src: Js.Value): ArrowFunctionBody = src("type").str match {
+		case "BlockStatement" => FunctionBody.from(src)
+		case "Identifier" => Identifier.from(src)
+		case "Literal" if src.obj.contains("regex") => RegExpLiteral.from(src)
+		case "Literal" if src.obj("value").isInstanceOf[Js.True.type] || src.obj("value").isInstanceOf[Js.False.type] => BooleanLiteral.from(src)
+		case "Literal" if src.obj("value").isInstanceOf[Js.Num] => NumberLiteral.from(src)
+		case "Literal" if src.obj("value").isInstanceOf[Js.Str] && !src.obj.contains("regex") => StringLiteral.from(src)
+		case "Literal" if src.obj("value").isInstanceOf[Js.Null.type] => NullLiteral.from(src)
+		case "ThisExpression" => ThisExpression.from(src)
+		case "ArrayExpression" => ArrayExpression.from(src)
+		case "ObjectExpression" => ObjectExpression.from(src)
+		case "FunctionExpression" => FunctionExpression.from(src)
+		case "UnaryExpression" => UnaryExpression.from(src)
+		case "UpdateExpression" => UpdateExpression.from(src)
+		case "BinaryExpression" => BinaryExpression.from(src)
+		case "AssignmentExpression" => AssignmentExpression.from(src)
+		case "LogicalExpression" => LogicalExpression.from(src)
+		case "MemberExpression" => MemberExpression.from(src)
+		case "ConditionalExpression" => ConditionalExpression.from(src)
+		case "CallExpression" => CallExpression.from(src)
+		case "NewExpression" => NewExpression.from(src)
+		case "SequenceExpression" => SequenceExpression.from(src)
+		case "ArrowFunctionExpression" => ArrowFunctionExpression.from(src)
+		case "YieldExpression" => YieldExpression.from(src)
+		case "TemplateLiteral" => TemplateLiteral.from(src)
+		case "TaggedTemplateExpression" => TaggedTemplateExpression.from(src)
+		case "ClassExpression" => ClassExpression.from(src)
+		case "MetaProperty" => MetaProperty.from(src)
+		case discriminant => throw new IllegalArgumentException(s"Unknown type '$discriminant' for ArrowFunctionBody")
+	}
+}
+
+sealed abstract class MethodKind {
+	def toJSON: Js.Str
+}
+
+object MethodKind {
+	final case object `constructor` extends MethodKind {
+		override def toJSON: Js.Str = Js.Str("constructor")
+		override def toString: String ="MethodKind[constructor]"
+	}
+
+	final case object `method` extends MethodKind {
+		override def toJSON: Js.Str = Js.Str("method")
+		override def toString: String ="MethodKind[method]"
+	}
+
+	final case object `get` extends MethodKind {
+		override def toJSON: Js.Str = Js.Str("get")
+		override def toString: String ="MethodKind[get]"
+	}
+
+	final case object `set` extends MethodKind {
+		override def toJSON: Js.Str = Js.Str("set")
+		override def toString: String ="MethodKind[set]"
+	}
+
+
+	def from(src: Js.Value): MethodKind = src.str match {
+		case "constructor" => `constructor`
+		case "method" => `method`
+		case "get" => `get`
+		case "set" => `set`
+	}
+}
+
+sealed trait ModuleImportSpecifier {
+	this: ModuleSpecifier =>
+
+	def toJSON: Js.Value
+}
+
+object ModuleImportSpecifier {
+	def from(src: Js.Value): ModuleImportSpecifier = src("type").str match {
+		case "ImportSpecifier" => ImportSpecifier.from(src)
+		case "ImportDefaultSpecifier" => ImportDefaultSpecifier.from(src)
+		case "ImportNamespaceSpecifier" => ImportNamespaceSpecifier.from(src)
+		case discriminant => throw new IllegalArgumentException(s"Unknown type '$discriminant' for ModuleImportSpecifier")
+	}
+}
+
+sealed trait Exportable {
+	this: Node =>
+
+	def toJSON: Js.Value
+}
+
+object Exportable {
+	def from(src: Js.Value): Exportable = src("type").str match {
+		case "FunctionDeclaration" => FunctionDeclaration.from(src)
+		case "VariableDeclaration" => VariableDeclaration.from(src)
+		case "ClassDeclaration" => ClassDeclaration.from(src)
+		case "Identifier" => Identifier.from(src)
+		case "Literal" if src.obj.contains("regex") => RegExpLiteral.from(src)
+		case "Literal" if src.obj("value").isInstanceOf[Js.True.type] || src.obj("value").isInstanceOf[Js.False.type] => BooleanLiteral.from(src)
+		case "Literal" if src.obj("value").isInstanceOf[Js.Num] => NumberLiteral.from(src)
+		case "Literal" if src.obj("value").isInstanceOf[Js.Str] && !src.obj.contains("regex") => StringLiteral.from(src)
+		case "Literal" if src.obj("value").isInstanceOf[Js.Null.type] => NullLiteral.from(src)
+		case "ThisExpression" => ThisExpression.from(src)
+		case "ArrayExpression" => ArrayExpression.from(src)
+		case "ObjectExpression" => ObjectExpression.from(src)
+		case "FunctionExpression" => FunctionExpression.from(src)
+		case "UnaryExpression" => UnaryExpression.from(src)
+		case "UpdateExpression" => UpdateExpression.from(src)
+		case "BinaryExpression" => BinaryExpression.from(src)
+		case "AssignmentExpression" => AssignmentExpression.from(src)
+		case "LogicalExpression" => LogicalExpression.from(src)
+		case "MemberExpression" => MemberExpression.from(src)
+		case "ConditionalExpression" => ConditionalExpression.from(src)
+		case "CallExpression" => CallExpression.from(src)
+		case "NewExpression" => NewExpression.from(src)
+		case "SequenceExpression" => SequenceExpression.from(src)
+		case "ArrowFunctionExpression" => ArrowFunctionExpression.from(src)
+		case "YieldExpression" => YieldExpression.from(src)
+		case "TemplateLiteral" => TemplateLiteral.from(src)
+		case "TaggedTemplateExpression" => TaggedTemplateExpression.from(src)
+		case "ClassExpression" => ClassExpression.from(src)
+		case "MetaProperty" => MetaProperty.from(src)
+		case discriminant => throw new IllegalArgumentException(s"Unknown type '$discriminant' for Exportable")
 	}
 }
 
