@@ -106,7 +106,8 @@ export async function importSpecs(specs: SpecSource[]): Promise<Specification> {
     function add(spec: NormalizeSpecSource): void {
         remove(spec)
         orderedSpecs.unshift(spec)
-        spec.depNames.forEach(dep => {
+        // reverse dependencies because deps from further back should be further back in the orderedSpecs list
+        spec.depNames.reverse().forEach(dep => {
             add(resolve(dep))
         })
 
