@@ -166,3 +166,18 @@ extend interface AssignmentExpression {
 }
 
 ```
+
+
+## Conditional Expression property order
+
+The es5 spec first lists `alternate` and then `consequent` for `ConditionalExpression.
+That is not the natural order and especially different from `IfStatement`. So turn that around.
+
+```js 
+interface ConditionalExpression <: Expression {
+    type: "ConditionalExpression";
+    test: Expression;
+    consequent: Expression;
+    alternate: Expression;
+}
+```

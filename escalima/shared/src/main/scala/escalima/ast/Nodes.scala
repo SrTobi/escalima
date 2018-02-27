@@ -1494,19 +1494,19 @@ object MemberExpression {
 	}
 }
 
-sealed class ConditionalExpression(val test: Expression, val alternate: Expression, val consequent: Expression, loc: Option[SourceLocation]) extends Node(loc) with Expression {
+sealed class ConditionalExpression(val test: Expression, val consequent: Expression, val alternate: Expression, loc: Option[SourceLocation]) extends Node(loc) with Expression {
 	override def toJSON: Js.Value = Js.Obj(
 			"type" -> Js.Str("ConditionalExpression"),
 			"test" -> this.test.toJSON,
-			"alternate" -> this.alternate.toJSON,
 			"consequent" -> this.consequent.toJSON,
+			"alternate" -> this.alternate.toJSON,
 			"loc" -> this.loc.map(inner => inner.toJSON).getOrElse(Js.Null)
 		)
 }
 
 object ConditionalExpression {
-	def apply(test: Expression, alternate: Expression, consequent: Expression, loc: Option[SourceLocation]): ConditionalExpression = new ConditionalExpression(test, alternate, consequent, loc)
-	def unapply(conditionalExpression: ConditionalExpression): Option[(Expression, Expression, Expression)] = Some((conditionalExpression.test, conditionalExpression.alternate, conditionalExpression.consequent))
+	def apply(test: Expression, consequent: Expression, alternate: Expression, loc: Option[SourceLocation]): ConditionalExpression = new ConditionalExpression(test, consequent, alternate, loc)
+	def unapply(conditionalExpression: ConditionalExpression): Option[(Expression, Expression, Expression)] = Some((conditionalExpression.test, conditionalExpression.consequent, conditionalExpression.alternate))
 
 	def from(src: Js.Value): ConditionalExpression = {
 		val _obj = src.obj
@@ -1514,8 +1514,8 @@ object ConditionalExpression {
 
 		new ConditionalExpression(
 			Expression.from(_obj("test")),
-			Expression.from(_obj("alternate")),
 			Expression.from(_obj("consequent")),
+			Expression.from(_obj("alternate")),
 			_obj.get("loc").flatMap(_ match { case Js.Null => None; case some => Some(some)}).map(inner => SourceLocation.from(inner))
 		)
 	}
