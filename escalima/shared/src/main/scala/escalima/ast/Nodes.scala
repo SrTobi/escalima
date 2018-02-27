@@ -920,7 +920,7 @@ object ArrayExpression {
 	}
 }
 
-sealed class ObjectExpression(val properties: Seq[Property], loc: Option[SourceLocation]) extends Node(loc) with Expression {
+sealed class ObjectExpression(val properties: Seq[SpreadableProperty], loc: Option[SourceLocation]) extends Node(loc) with Expression {
 	override def toJSON: Js.Value = Js.Obj(
 			"type" -> Js.Str("ObjectExpression"),
 			"properties" -> Js.Arr(this.properties.map(inner => inner.toJSON): _*),
@@ -929,21 +929,21 @@ sealed class ObjectExpression(val properties: Seq[Property], loc: Option[SourceL
 }
 
 object ObjectExpression {
-	def apply(properties: Seq[Property], loc: Option[SourceLocation]): ObjectExpression = new ObjectExpression(properties, loc)
-	def unapply(objectExpression: ObjectExpression): Option[Seq[Property]] = Some(objectExpression.properties)
+	def apply(properties: Seq[SpreadableProperty], loc: Option[SourceLocation]): ObjectExpression = new ObjectExpression(properties, loc)
+	def unapply(objectExpression: ObjectExpression): Option[Seq[SpreadableProperty]] = Some(objectExpression.properties)
 
 	def from(src: Js.Value): ObjectExpression = {
 		val _obj = src.obj
 		assert(_obj("type").str == "ObjectExpression")
 
 		new ObjectExpression(
-			_obj("properties").arr.map(elem => Property.from(elem)),
+			_obj("properties").arr.map(elem => SpreadableProperty.from(elem)),
 			_obj.get("loc").flatMap(_ match { case Js.Null => None; case some => Some(some)}).map(inner => SourceLocation.from(inner))
 		)
 	}
 }
 
-sealed class Property(val key: PropertyKey, val value: Expression, val kind: PropertyKind, val method: Boolean, val shorthand: Boolean, val computed: Boolean, loc: Option[SourceLocation]) extends Node(loc) {
+sealed class Property(val key: PropertyKey, val value: Expression, val kind: PropertyKind, val method: Boolean, val shorthand: Boolean, val computed: Boolean, loc: Option[SourceLocation]) extends Node(loc) with SpreadableProperty {
 	override def toJSON: Js.Value = Js.Obj(
 			"type" -> Js.Str("Property"),
 			"key" -> this.key.toJSON,
@@ -1658,7 +1658,7 @@ object Super {
 	}
 }
 
-sealed class SpreadElement(val argument: Expression, loc: Option[SourceLocation]) extends Node(loc) with SpreadableExpression {
+sealed class SpreadElement(val argument: Expression, loc: Option[SourceLocation]) extends Node(loc) with SpreadableExpression with SpreadableProperty {
 	override def toJSON: Js.Value = Js.Obj(
 			"type" -> Js.Str("SpreadElement"),
 			"argument" -> this.argument.toJSON,
@@ -1829,7 +1829,7 @@ object TemplateElement {
 	}
 }
 
-sealed class AssignmentProperty(val value: Pattern, loc: Option[SourceLocation]) extends Node(loc) {
+sealed class AssignmentProperty(val value: Pattern, loc: Option[SourceLocation]) extends Node(loc) with PropertyPattern {
 	override def toJSON: Js.Value = Js.Obj(
 			"type" -> Js.Str("Property"),
 			"value" -> this.value.toJSON,
@@ -1852,7 +1852,7 @@ object AssignmentProperty {
 	}
 }
 
-sealed class ObjectPattern(val properties: Seq[AssignmentProperty], loc: Option[SourceLocation]) extends Node(loc) with Pattern {
+sealed class ObjectPattern(val properties: Seq[PropertyPattern], loc: Option[SourceLocation]) extends Node(loc) with Pattern {
 	override def toJSON: Js.Value = Js.Obj(
 			"type" -> Js.Str("ObjectPattern"),
 			"properties" -> Js.Arr(this.properties.map(inner => inner.toJSON): _*),
@@ -1861,15 +1861,15 @@ sealed class ObjectPattern(val properties: Seq[AssignmentProperty], loc: Option[
 }
 
 object ObjectPattern {
-	def apply(properties: Seq[AssignmentProperty], loc: Option[SourceLocation]): ObjectPattern = new ObjectPattern(properties, loc)
-	def unapply(objectPattern: ObjectPattern): Option[Seq[AssignmentProperty]] = Some(objectPattern.properties)
+	def apply(properties: Seq[PropertyPattern], loc: Option[SourceLocation]): ObjectPattern = new ObjectPattern(properties, loc)
+	def unapply(objectPattern: ObjectPattern): Option[Seq[PropertyPattern]] = Some(objectPattern.properties)
 
 	def from(src: Js.Value): ObjectPattern = {
 		val _obj = src.obj
 		assert(_obj("type").str == "ObjectPattern")
 
 		new ObjectPattern(
-			_obj("properties").arr.map(elem => AssignmentProperty.from(elem)),
+			_obj("properties").arr.map(elem => PropertyPattern.from(elem)),
 			_obj.get("loc").flatMap(_ match { case Js.Null => None; case some => Some(some)}).map(inner => SourceLocation.from(inner))
 		)
 	}
@@ -1898,7 +1898,7 @@ object ArrayPattern {
 	}
 }
 
-sealed class RestElement(val argument: Pattern, loc: Option[SourceLocation]) extends Node(loc) with Pattern {
+sealed class RestElement(val argument: Pattern, loc: Option[SourceLocation]) extends Node(loc) with Pattern with PropertyPattern {
 	override def toJSON: Js.Value = Js.Obj(
 			"type" -> Js.Str("RestElement"),
 			"argument" -> this.argument.toJSON,
@@ -2869,6 +2869,30 @@ object Exportable {
 		case "MetaProperty" => MetaProperty.from(src)
 		case "AwaitExpression" => AwaitExpression.from(src)
 		case discriminant => throw new IllegalArgumentException(s"Unknown type '$discriminant' for Exportable")
+	}
+}
+
+sealed trait SpreadableProperty {
+	def toJSON: Js.Value
+}
+
+object SpreadableProperty {
+	def from(src: Js.Value): SpreadableProperty = src("type").str match {
+		case "Property" => Property.from(src)
+		case "SpreadElement" => SpreadElement.from(src)
+		case discriminant => throw new IllegalArgumentException(s"Unknown type '$discriminant' for SpreadableProperty")
+	}
+}
+
+sealed trait PropertyPattern {
+	def toJSON: Js.Value
+}
+
+object PropertyPattern {
+	def from(src: Js.Value): PropertyPattern = src("type").str match {
+		case "Property" => AssignmentProperty.from(src)
+		case "RestElement" => RestElement.from(src)
+		case discriminant => throw new IllegalArgumentException(s"Unknown type '$discriminant' for PropertyPattern")
 	}
 }
 

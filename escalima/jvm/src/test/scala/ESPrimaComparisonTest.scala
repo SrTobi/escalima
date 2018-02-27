@@ -191,5 +191,10 @@ class ESPrimaComparisonTest extends FreeSpec with Matchers {
         "es2017" in {
             checkFolder("es2017")
         }
+
+        "es2018" in {
+            checkFolder("es2018/rest-property")
+            checkFolder("es2018/spread-property")
+        }
     }
 }
