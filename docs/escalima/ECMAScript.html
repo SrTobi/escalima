@@ -103,12 +103,12 @@
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="index.html" class="extype" name="escalima">escalima</a></dd></dl></div>
     </li><li class="current-entities indented1">
                         <span class="separator"></span>
-                        <a class="class" href="" title=""></a>
-                        <a href="" title="">ECMAScript</a>
+                        <a class="class" href="" title="The main class of Escalima."></a>
+                        <a href="" title="The main class of Escalima.">ECMAScript</a>
                       </li><li class="current-entities indented1">
                         <span class="separator"></span>
-                        <a class="class" href="ESPrimaParseException.html" title=""></a>
-                        <a href="ESPrimaParseException.html" title="">ESPrimaParseException</a>
+                        <a class="class" href="ESPrimaParseException.html" title="The exception thrown by either of the parse methods in ECMAScript if esprima was not able to parse the JavaScript source."></a>
+                        <a href="ESPrimaParseException.html" title="The exception thrown by either of the parse methods in ECMAScript if esprima was not able to parse the JavaScript source.">ESPrimaParseException</a>
                       </li>
               </ul>
             </div>
@@ -137,7 +137,8 @@
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>The main class of Escalima.</p><p>Has methods to parse JavaScript.
+</p></div><dl class="attributes block"> <dt>Note</dt><dd><span class="cmt"><p>Creation of this class might be expensive! It is recommended to only create one per thread.</p></span></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
@@ -463,7 +464,7 @@
                 <span class="name">@native</span><span class="args">()</span>
               
         </dd></dl></div>
-    </li><li name="escalima.ECMAScript#parseModule" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+    </li><li name="escalima.ECMAScript#parseModule" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="parseModule(sourcecode:String):escalima.ast.Program"></a><a id="parseModule(String):Program"></a>
       <span class="permalink">
       <a href="../escalima/ECMAScript.html#parseModule(sourcecode:String):escalima.ast.Program" title="Permalink">
@@ -478,8 +479,9 @@
         <span class="name">parseModule</span><span class="params">(<span name="sourcecode">sourcecode: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <a href="ast/Program.html" class="extype" name="escalima.ast.Program">Program</a></span>
       </span>
       
-      
-    </li><li name="escalima.ECMAScript#parseModuleToJson" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <p class="shortcomment cmt">Parses a JavaScript module and returns it's ast.</p><div class="fullcomment"><div class="comment cmt"><p>Parses a JavaScript module and returns it's ast.
+</p></div><dl class="paramcmts block"><dt class="param">sourcecode</dt><dd class="cmt"><p>the source code that should be parsed</p></dd><dt>returns</dt><dd class="cmt"><p>the ast of the module</p></dd></dl><dl class="attributes block"> <dt>Exceptions thrown</dt><dd><span class="cmt"><p><a href="ESPrimaParseException.html" class="extype" name="escalima.ESPrimaParseException"><code>ESPrimaParseException</code></a> if esprima was not able to parse sourcecode</p></span></dd><dt>Note</dt><dd><span class="cmt"><p>JavaScript modules and JavaScript scripts are different things. Scripts for example may not contain import/export declarations.</p></span></dd></dl></div>
+    </li><li name="escalima.ECMAScript#parseModuleToJson" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="parseModuleToJson(sourcecode:String):String"></a><a id="parseModuleToJson(String):String"></a>
       <span class="permalink">
       <a href="../escalima/ECMAScript.html#parseModuleToJson(sourcecode:String):String" title="Permalink">
@@ -494,8 +496,9 @@
         <span class="name">parseModuleToJson</span><span class="params">(<span name="sourcecode">sourcecode: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <span class="extype" name="scala.Predef.String">String</span></span>
       </span>
       
-      
-    </li><li name="escalima.ECMAScript#parseScript" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <p class="shortcomment cmt">Parses a JavaScript module and returns the json created by esprima.</p><div class="fullcomment"><div class="comment cmt"><p>Parses a JavaScript module and returns the json created by esprima.
+</p></div><dl class="paramcmts block"><dt class="param">sourcecode</dt><dd class="cmt"><p>the source code that should be parsed</p></dd><dt>returns</dt><dd class="cmt"><p>the json of the ast created by esprima</p></dd></dl><dl class="attributes block"> <dt>Exceptions thrown</dt><dd><span class="cmt"><p><a href="ESPrimaParseException.html" class="extype" name="escalima.ESPrimaParseException"><code>ESPrimaParseException</code></a> if esprima was not able to parse sourcecode</p></span></dd><dt>Note</dt><dd><span class="cmt"><p>JavaScript modules and JavaScript scripts are different things. Scripts for example may not contain import/export declarations.</p></span></dd></dl></div>
+    </li><li name="escalima.ECMAScript#parseScript" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="parseScript(sourcecode:String):escalima.ast.Program"></a><a id="parseScript(String):Program"></a>
       <span class="permalink">
       <a href="../escalima/ECMAScript.html#parseScript(sourcecode:String):escalima.ast.Program" title="Permalink">
@@ -510,8 +513,9 @@
         <span class="name">parseScript</span><span class="params">(<span name="sourcecode">sourcecode: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <a href="ast/Program.html" class="extype" name="escalima.ast.Program">Program</a></span>
       </span>
       
-      
-    </li><li name="escalima.ECMAScript#parseScriptToJson" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <p class="shortcomment cmt">Parses a JavaScript script and returns it's ast.</p><div class="fullcomment"><div class="comment cmt"><p>Parses a JavaScript script and returns it's ast.
+</p></div><dl class="paramcmts block"><dt class="param">sourcecode</dt><dd class="cmt"><p>the source code that should be parsed</p></dd><dt>returns</dt><dd class="cmt"><p>the ast of the module</p></dd></dl><dl class="attributes block"> <dt>Exceptions thrown</dt><dd><span class="cmt"><p><a href="ESPrimaParseException.html" class="extype" name="escalima.ESPrimaParseException"><code>ESPrimaParseException</code></a> if esprima was not able to parse sourcecode</p></span></dd><dt>Note</dt><dd><span class="cmt"><p>JavaScript modules and JavaScript scripts are different things. Scripts for example may not contain import/export declarations.</p></span></dd></dl></div>
+    </li><li name="escalima.ECMAScript#parseScriptToJson" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="parseScriptToJson(sourcecode:String):String"></a><a id="parseScriptToJson(String):String"></a>
       <span class="permalink">
       <a href="../escalima/ECMAScript.html#parseScriptToJson(sourcecode:String):String" title="Permalink">
@@ -526,7 +530,8 @@
         <span class="name">parseScriptToJson</span><span class="params">(<span name="sourcecode">sourcecode: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <span class="extype" name="scala.Predef.String">String</span></span>
       </span>
       
-      
+      <p class="shortcomment cmt">Parses a JavaScript script and returns the json created by esprima.</p><div class="fullcomment"><div class="comment cmt"><p>Parses a JavaScript script and returns the json created by esprima.
+</p></div><dl class="paramcmts block"><dt class="param">sourcecode</dt><dd class="cmt"><p>the source code that should be parsed</p></dd><dt>returns</dt><dd class="cmt"><p>the json of the ast created by esprima</p></dd></dl><dl class="attributes block"> <dt>Exceptions thrown</dt><dd><span class="cmt"><p><a href="ESPrimaParseException.html" class="extype" name="escalima.ESPrimaParseException"><code>ESPrimaParseException</code></a> if esprima was not able to parse sourcecode</p></span></dd><dt>Note</dt><dd><span class="cmt"><p>JavaScript modules and JavaScript scripts are different things. Scripts for example may not contain import/export declarations.</p></span></dd></dl></div>
     </li><li name="scala.AnyRef#synchronized" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="synchronized[T0](x$1:=&gt;T0):T0"></a><a id="synchronized[T0](⇒T0):T0"></a>
       <span class="permalink">
