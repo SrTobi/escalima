@@ -25,6 +25,7 @@ function fixspec(file: string, ...deps: SpecSource[]): SpecSource {
 }
 
 interface FixOptions {
+    spec: SpecSource
     forceClasses: string[]
     forceTrait: string[]
     forceAbstract: string[]
@@ -34,6 +35,7 @@ interface FixOptions {
 }
 function mergeFixOptions(org: FixOptions, ext: FixOptions): FixOptions {
     return {
+        spec: ext.spec,
         forceClasses: org.forceClasses.concat(ext.forceClasses),
         forceTrait: org.forceTrait.concat(ext.forceTrait),
         forceAbstract: org.forceAbstract.concat(ext.forceAbstract),
@@ -52,6 +54,7 @@ const es2018 = esspec("es2018.md", es2017)
 // es 5
 const es5Fix = fixspec("fix-es5.md", es5)
 const es5FixOptions: FixOptions = {
+    spec: es5Fix,
     forceClasses: [
         "Node",
         "Literal",
@@ -80,6 +83,7 @@ const es5FixOptions: FixOptions = {
 // es 2015
 const es2015Fix = fixspec("fix-es2015.md", es2015, es5Fix)
 const es2015FixOptions: FixOptions = mergeFixOptions(es5FixOptions, {
+    spec: es2015Fix,
     forceClasses: [
         "Class",
         "ModuleSpecifier",
@@ -99,15 +103,27 @@ const es2015FixOptions: FixOptions = mergeFixOptions(es5FixOptions, {
     parseConditions: {}
 })
 
-const options: Options = Object.assign({
+// es 2016
+const es2016Fix = fixspec("fix-es2016.md", es2016, es2015Fix)
+const es2016FixOptions: FixOptions = mergeFixOptions(es2015FixOptions, {
+    spec: es2016Fix,
+    forceClasses: [],
+    forceTrait: [],
+    forceAbstract: [],
+    renames: [],
+    suppressFromJson: [],
+    parseConditions: {}
+})
+
+const options: Options & FixOptions = Object.assign({
     package: "escalima.ast",
     discriminant: "type",
-}, es2015FixOptions)
+}, es2016FixOptions)
 
 
 
 async function main() {
-    const spec = await importSpecs([es2015Fix])
+    const spec = await importSpecs([options.spec])
     console.log("Building scala ast")
     const result = await buildScalaAst(spec, options)
     console.log(`Writing ast to ${normalize(target)}`)

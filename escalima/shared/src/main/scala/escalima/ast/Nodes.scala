@@ -1264,6 +1264,11 @@ object BinaryOperator {
 		override def toString: String ="BinaryOperator[instanceof]"
 	}
 
+	final case object `**` extends BinaryOperator {
+		override def toJSON: Js.Str = Js.Str("**")
+		override def toString: String ="BinaryOperator[**]"
+	}
+
 
 	def from(src: Js.Value): BinaryOperator = src.str match {
 		case "==" => `==`
@@ -1287,6 +1292,7 @@ object BinaryOperator {
 		case "&" => `&`
 		case "in" => `in`
 		case "instanceof" => `instanceof`
+		case "**" => `**`
 	}
 }
 
@@ -1382,6 +1388,11 @@ object AssignmentOperator {
 		override def toString: String ="AssignmentOperator[&=]"
 	}
 
+	final case object `**=` extends AssignmentOperator {
+		override def toJSON: Js.Str = Js.Str("**=")
+		override def toString: String ="AssignmentOperator[**=]"
+	}
+
 
 	def from(src: Js.Value): AssignmentOperator = src.str match {
 		case "=" => `=`
@@ -1396,6 +1407,7 @@ object AssignmentOperator {
 		case "|=" => `|=`
 		case "^=" => `^=`
 		case "&=" => `&=`
+		case "**=" => `**=`
 	}
 }
 

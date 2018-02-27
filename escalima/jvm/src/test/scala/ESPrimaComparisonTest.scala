@@ -183,5 +183,8 @@ class ESPrimaComparisonTest extends FreeSpec with Matchers {
             checkFolder("ES6/yield")
         }
 
+        "ES2016" in {
+            checkFolder("ES2016")
+        }
     }
 }
