@@ -163,19 +163,20 @@ object Program {
 	}
 }
 
-sealed class Function(val id: Option[Identifier], val params: Seq[Pattern], val body: FunctionBody, val generator: Boolean, loc: Option[SourceLocation]) extends Node(loc) {
+sealed class Function(val id: Option[Identifier], val params: Seq[Pattern], val body: FunctionBody, val generator: Boolean, val async: Boolean, loc: Option[SourceLocation]) extends Node(loc) {
 	override def toJSON: Js.Value = Js.Obj(
 			"id" -> this.id.map(inner => inner.toJSON).getOrElse(Js.Null),
 			"params" -> Js.Arr(this.params.map(inner => inner.toJSON): _*),
 			"body" -> this.body.toJSON,
 			"generator" -> (if (this.generator) Js.True else Js.False),
+			"async" -> (if (this.async) Js.True else Js.False),
 			"loc" -> this.loc.map(inner => inner.toJSON).getOrElse(Js.Null)
 		)
 }
 
 object Function {
-	def apply(id: Option[Identifier], params: Seq[Pattern], body: FunctionBody, generator: Boolean, loc: Option[SourceLocation]): Function = new Function(id, params, body, generator, loc)
-	def unapply(function: Function): Option[(Option[Identifier], Seq[Pattern], FunctionBody, Boolean)] = Some((function.id, function.params, function.body, function.generator))
+	def apply(id: Option[Identifier], params: Seq[Pattern], body: FunctionBody, generator: Boolean, async: Boolean, loc: Option[SourceLocation]): Function = new Function(id, params, body, generator, async, loc)
+	def unapply(function: Function): Option[(Option[Identifier], Seq[Pattern], FunctionBody, Boolean, Boolean)] = Some((function.id, function.params, function.body, function.generator, function.async))
 
 	def from(src: Js.Value): Function = {
 		val _obj = src.obj
@@ -185,6 +186,7 @@ object Function {
 			_obj("params").arr.map(elem => Pattern.from(elem)),
 			FunctionBody.from(_obj("body")),
 			_obj("generator").isInstanceOf[Js.True.type],
+			_obj("async").isInstanceOf[Js.True.type],
 			_obj.get("loc").flatMap(_ match { case Js.Null => None; case some => Some(some)}).map(inner => SourceLocation.from(inner))
 		)
 	}
@@ -756,19 +758,20 @@ object Declaration {
 	}
 }
 
-sealed class FunctionDeclaration(id: Option[Identifier], params: Seq[Pattern], body: FunctionBody, generator: Boolean, loc: Option[SourceLocation]) extends Function(id, params, body, generator, loc) with Declaration {
+sealed class FunctionDeclaration(id: Option[Identifier], params: Seq[Pattern], body: FunctionBody, generator: Boolean, async: Boolean, loc: Option[SourceLocation]) extends Function(id, params, body, generator, async, loc) with Declaration {
 	override def toJSON: Js.Value = Js.Obj(
 			"type" -> Js.Str("FunctionDeclaration"),
 			"id" -> this.id.map(inner => inner.toJSON).getOrElse(Js.Null),
 			"params" -> Js.Arr(this.params.map(inner => inner.toJSON): _*),
 			"body" -> this.body.toJSON,
 			"generator" -> (if (this.generator) Js.True else Js.False),
+			"async" -> (if (this.async) Js.True else Js.False),
 			"loc" -> this.loc.map(inner => inner.toJSON).getOrElse(Js.Null)
 		)
 }
 
 object FunctionDeclaration {
-	def apply(id: Option[Identifier], params: Seq[Pattern], body: FunctionBody, generator: Boolean, loc: Option[SourceLocation]): FunctionDeclaration = new FunctionDeclaration(id, params, body, generator, loc)
+	def apply(id: Option[Identifier], params: Seq[Pattern], body: FunctionBody, generator: Boolean, async: Boolean, loc: Option[SourceLocation]): FunctionDeclaration = new FunctionDeclaration(id, params, body, generator, async, loc)
 
 	def from(src: Js.Value): FunctionDeclaration = {
 		val _obj = src.obj
@@ -779,6 +782,7 @@ object FunctionDeclaration {
 			_obj("params").arr.map(elem => Pattern.from(elem)),
 			FunctionBody.from(_obj("body")),
 			_obj("generator").isInstanceOf[Js.True.type],
+			_obj("async").isInstanceOf[Js.True.type],
 			_obj.get("loc").flatMap(_ match { case Js.Null => None; case some => Some(some)}).map(inner => SourceLocation.from(inner))
 		)
 	}
@@ -868,6 +872,7 @@ object Expression {
 		case "TaggedTemplateExpression" => TaggedTemplateExpression.from(src)
 		case "ClassExpression" => ClassExpression.from(src)
 		case "MetaProperty" => MetaProperty.from(src)
+		case "AwaitExpression" => AwaitExpression.from(src)
 		case discriminant => throw new IllegalArgumentException(s"Unknown type '$discriminant' for Expression")
 	}
 }
@@ -971,19 +976,20 @@ object Property {
 	}
 }
 
-sealed class FunctionExpression(id: Option[Identifier], params: Seq[Pattern], body: FunctionBody, generator: Boolean, loc: Option[SourceLocation]) extends Function(id, params, body, generator, loc) with Expression {
+sealed class FunctionExpression(id: Option[Identifier], params: Seq[Pattern], body: FunctionBody, generator: Boolean, async: Boolean, loc: Option[SourceLocation]) extends Function(id, params, body, generator, async, loc) with Expression {
 	override def toJSON: Js.Value = Js.Obj(
 			"type" -> Js.Str("FunctionExpression"),
 			"id" -> this.id.map(inner => inner.toJSON).getOrElse(Js.Null),
 			"params" -> Js.Arr(this.params.map(inner => inner.toJSON): _*),
 			"body" -> this.body.toJSON,
 			"generator" -> (if (this.generator) Js.True else Js.False),
+			"async" -> (if (this.async) Js.True else Js.False),
 			"loc" -> this.loc.map(inner => inner.toJSON).getOrElse(Js.Null)
 		)
 }
 
 object FunctionExpression {
-	def apply(id: Option[Identifier], params: Seq[Pattern], body: FunctionBody, generator: Boolean, loc: Option[SourceLocation]): FunctionExpression = new FunctionExpression(id, params, body, generator, loc)
+	def apply(id: Option[Identifier], params: Seq[Pattern], body: FunctionBody, generator: Boolean, async: Boolean, loc: Option[SourceLocation]): FunctionExpression = new FunctionExpression(id, params, body, generator, async, loc)
 
 	def from(src: Js.Value): FunctionExpression = {
 		val _obj = src.obj
@@ -994,6 +1000,7 @@ object FunctionExpression {
 			_obj("params").arr.map(elem => Pattern.from(elem)),
 			FunctionBody.from(_obj("body")),
 			_obj("generator").isInstanceOf[Js.True.type],
+			_obj("async").isInstanceOf[Js.True.type],
 			_obj.get("loc").flatMap(_ match { case Js.Null => None; case some => Some(some)}).map(inner => SourceLocation.from(inner))
 		)
 	}
@@ -2319,6 +2326,29 @@ object ExportAllDeclaration {
 	}
 }
 
+sealed class AwaitExpression(val argument: Expression, loc: Option[SourceLocation]) extends Node(loc) with Expression {
+	override def toJSON: Js.Value = Js.Obj(
+			"type" -> Js.Str("AwaitExpression"),
+			"argument" -> this.argument.toJSON,
+			"loc" -> this.loc.map(inner => inner.toJSON).getOrElse(Js.Null)
+		)
+}
+
+object AwaitExpression {
+	def apply(argument: Expression, loc: Option[SourceLocation]): AwaitExpression = new AwaitExpression(argument, loc)
+	def unapply(awaitExpression: AwaitExpression): Option[Expression] = Some(awaitExpression.argument)
+
+	def from(src: Js.Value): AwaitExpression = {
+		val _obj = src.obj
+		assert(_obj("type").str == "AwaitExpression")
+
+		new AwaitExpression(
+			Expression.from(_obj("argument")),
+			_obj.get("loc").flatMap(_ match { case Js.Null => None; case some => Some(some)}).map(inner => SourceLocation.from(inner))
+		)
+	}
+}
+
 sealed class BooleanLiteral(val value: Boolean, raw: String, loc: Option[SourceLocation]) extends Literal(raw, loc) {
 	override def toJSON: Js.Value = Js.Obj(
 			"type" -> Js.Str("Literal"),
@@ -2498,6 +2528,7 @@ object ForInit {
 		case "TaggedTemplateExpression" => TaggedTemplateExpression.from(src)
 		case "ClassExpression" => ClassExpression.from(src)
 		case "MetaProperty" => MetaProperty.from(src)
+		case "AwaitExpression" => AwaitExpression.from(src)
 		case discriminant => throw new IllegalArgumentException(s"Unknown type '$discriminant' for ForInit")
 	}
 }
@@ -2555,6 +2586,7 @@ object AssignmentTarget {
 		case "TaggedTemplateExpression" => TaggedTemplateExpression.from(src)
 		case "ClassExpression" => ClassExpression.from(src)
 		case "MetaProperty" => MetaProperty.from(src)
+		case "AwaitExpression" => AwaitExpression.from(src)
 		case "ObjectPattern" => ObjectPattern.from(src)
 		case "ArrayPattern" => ArrayPattern.from(src)
 		case "RestElement" => RestElement.from(src)
@@ -2663,6 +2695,7 @@ object SpreadableExpression {
 		case "TaggedTemplateExpression" => TaggedTemplateExpression.from(src)
 		case "ClassExpression" => ClassExpression.from(src)
 		case "MetaProperty" => MetaProperty.from(src)
+		case "AwaitExpression" => AwaitExpression.from(src)
 		case "SpreadElement" => SpreadElement.from(src)
 		case discriminant => throw new IllegalArgumentException(s"Unknown type '$discriminant' for SpreadableExpression")
 	}
@@ -2702,6 +2735,7 @@ object Callee {
 		case "TaggedTemplateExpression" => TaggedTemplateExpression.from(src)
 		case "ClassExpression" => ClassExpression.from(src)
 		case "MetaProperty" => MetaProperty.from(src)
+		case "AwaitExpression" => AwaitExpression.from(src)
 		case "Super" => Super.from(src)
 		case discriminant => throw new IllegalArgumentException(s"Unknown type '$discriminant' for Callee")
 	}
@@ -2742,6 +2776,7 @@ object ArrowFunctionBody {
 		case "TaggedTemplateExpression" => TaggedTemplateExpression.from(src)
 		case "ClassExpression" => ClassExpression.from(src)
 		case "MetaProperty" => MetaProperty.from(src)
+		case "AwaitExpression" => AwaitExpression.from(src)
 		case discriminant => throw new IllegalArgumentException(s"Unknown type '$discriminant' for ArrowFunctionBody")
 	}
 }
@@ -2832,6 +2867,7 @@ object Exportable {
 		case "TaggedTemplateExpression" => TaggedTemplateExpression.from(src)
 		case "ClassExpression" => ClassExpression.from(src)
 		case "MetaProperty" => MetaProperty.from(src)
+		case "AwaitExpression" => AwaitExpression.from(src)
 		case discriminant => throw new IllegalArgumentException(s"Unknown type '$discriminant' for Exportable")
 	}
 }

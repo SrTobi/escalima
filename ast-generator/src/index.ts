@@ -115,10 +115,22 @@ const es2016FixOptions: FixOptions = mergeFixOptions(es2015FixOptions, {
     parseConditions: {}
 })
 
+// es 2017
+const es2017Fix = fixspec("fix-es2017.md", es2017, es2016Fix)
+const es2017FixOptions: FixOptions = mergeFixOptions(es2016FixOptions, {
+    spec: es2017Fix,
+    forceClasses: [],
+    forceTrait: [],
+    forceAbstract: [],
+    renames: [],
+    suppressFromJson: [],
+    parseConditions: {}
+})
+
 const options: Options & FixOptions = Object.assign({
     package: "escalima.ast",
     discriminant: "type",
-}, es2016FixOptions)
+}, es2017FixOptions)
 
 
 
