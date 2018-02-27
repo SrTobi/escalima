@@ -1,6 +1,10 @@
 # Escalima
 
-Escalima is a Scala wrapper for [esprima](http://esprima.org/) to parse JavaScript into an ast. It works within the JVM as well as with ScalaJS. The output of esprima can either be received as a json string or as a neatly wrapped ast of scala classes.
+Escalima is a Scala wrapper for [esprima](http://esprima.org/) to parse JavaScript into an ast. It works within the JVM as well as with ScalaJS. The ast returned by esprima can either be received as a json string or as a neatly wrapped structure of scala classes.
+
+## Documantation
+
+[The scaladoc for escalima can be found here](https://srtobi.github.io/escalima/docs/escalima/).
 
 ## Example
 
@@ -18,7 +22,7 @@ program match {
 }
 ```
 
-All classes of the ast have neatly defined apply and unapply methods. The output of above program is:
+[All classes of the ast](https://srtobi.github.io/escalima/docs/escalima/ast/) have neatly defined apply and unapply methods. The output of above program is:
 
 ```json
 {
@@ -78,3 +82,10 @@ Instead of an ast Escalima can also just return a json string which is equivalen
     }
 }
 ```
+
+
+## How it works
+
+For **ScalaJS** Escalima simply loads Esprima as a module (that's why it has to be used with some kind of bundler) and wraps the calls.
+
+For the **JVM** it creates a new instance of `javax.script.ScriptManager` and loads Esprima. Then it calls the appropriate functions (See [JVMESPrimaBridge.scala](/escalima/jvm/src/main/scala/escalima/JVMESPrimaBridge.scala)). The initialization of the ScriptManager and Esprima might take a second. It is therefor recommended to only create one instance of [`ECMAScript`](https://srtobi.github.io/escalima/docs/escalima/ECMAScript.html) per thread.
