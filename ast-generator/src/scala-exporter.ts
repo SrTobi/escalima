@@ -684,9 +684,7 @@ export function buildScalaAst(spec: Specification, options: Options): string {
             const isAbstract = this.isAbstract
             const hasOwnParams = ownParams.length > 0
             if (this.isTrait) {
-                const hasContent = !!base || hasOwnParams
-
-                writer.println(`sealed trait ${norm(name)}${withExpr}${(hasContent)? " {" : ""}`)
+                writer.println(`sealed trait ${norm(name)}${withExpr} {`)
 
                 const innerWriter = writer.indented()
                 if (base) {
