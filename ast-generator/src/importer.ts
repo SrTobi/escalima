@@ -24,15 +24,12 @@ export function extendSpec(base: Specification, extension: Specification): Speci
     const result = Object.assign({}, base) as Specification;
 	for (const name in extension) {
 		const item = extension[name];
-		if (item.kind === 'interface' && item.extend) {
+		if (item.extend) {
             const baseItem = base[name];
             if (!baseItem) {
                 throw new Error(`Can not extend ${name} because it wasn't defined`)
             }
-            if (baseItem.kind !== "interface") {
-                throw new Error("Can not merge interface and " + baseItem.kind)
-            }
-            result[name] = Spec.extendInterface(baseItem, item)
+            result[name] = Spec.extendDefinition(baseItem, item)
 		} else {
 			result[name] = item;
 		}

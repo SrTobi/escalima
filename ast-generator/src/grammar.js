@@ -72,12 +72,12 @@
   }
 */
 var grammar = (function(){
-var o=function(k,v,o,l){for(o=o||{},l=k.length;l--;o[k[l]]=v);return o},$V0=[5,7,8,13],$V1=[1,14],$V2=[1,19],$V3=[9,16],$V4=[1,23],$V5=[1,24],$V6=[1,25],$V7=[1,26],$V8=[1,29],$V9=[14,17],$Va=[16,18],$Vb=[9,16,18,26,31],$Vc=[1,41],$Vd=[1,42],$Ve=[1,45];
+var o=function(k,v,o,l){for(o=o||{},l=k.length;l--;o[k[l]]=v);return o},$V0=[5,7,8,13],$V1=[1,16],$V2=[1,22],$V3=[9,16],$V4=[1,26],$V5=[1,27],$V6=[1,28],$V7=[1,29],$V8=[1,33],$V9=[14,17],$Va=[1,38],$Vb=[16,18],$Vc=[9,16,18,26,31],$Vd=[1,46],$Ve=[1,47],$Vf=[1,50];
 var parser = {trace: function trace() { },
 yy: {},
 symbols_: {"error":2,"program":3,"program_repetition0":4,"EOF":5,"def":6,"EXTEND":7,"INTERFACE":8,"NAME":9,"object":10,"<:":11,"names":12,"ENUM":13,"{":14,"enumBody":15,"}":16,",":17,"|":18,"literal":19,"object_repetition0":20,"prop":21,":":22,"type":23,"prop_option0":24,"[":25,"]":26,"STRING":27,"NUMBER":28,"BOOLEAN":29,"NULL":30,";":31,"$accept":0,"$end":1},
 terminals_: {2:"error",5:"EOF",7:"EXTEND",8:"INTERFACE",9:"NAME",11:"<:",13:"ENUM",14:"{",16:"}",17:",",18:"|",22:":",25:"[",26:"]",27:"STRING",28:"NUMBER",29:"BOOLEAN",30:"NULL",31:";"},
-productions_: [0,[3,2],[6,4],[6,6],[6,5],[6,3],[6,5],[12,3],[12,1],[15,3],[15,1],[10,3],[21,4],[23,3],[23,1],[23,1],[23,3],[23,1],[19,1],[19,1],[19,1],[19,1],[4,0],[4,2],[20,0],[20,2],[24,0],[24,1]],
+productions_: [0,[3,2],[6,4],[6,6],[6,5],[6,3],[6,5],[6,6],[12,3],[12,1],[15,3],[15,1],[10,3],[21,4],[23,3],[23,1],[23,1],[23,3],[23,1],[19,1],[19,1],[19,1],[19,1],[4,0],[4,2],[20,0],[20,2],[24,0],[24,1]],
 performAction: function anonymous(yytext, yyleng, yylineno, yy, yystate /* action[1] */, $$ /* vstack */, _$ /* lstack */) {
 /* this == yyval */
 
@@ -87,8 +87,8 @@ case 1:
 
         return toObject(this.$, function (oldValue, newValue) {
             // Extend earlier found interface or return new one.
-            if (oldValue.kind === 'interface' && newValue.kind === 'interface' && newValue.extend) {
-                return extendInterface(oldValue, newValue)
+            if (oldValue.kind === newValue.kind && newValue.extend) {
+                return extendDefinition(oldValue, newValue)
             } else {
                 return newValue;
             }
@@ -108,61 +108,64 @@ case 5:
 this.$ = intf($$[$0-1], $$[$0], [], false);
 break;
 case 6:
-this.$ = {name: $$[$0-3], value: {kind: 'enum', values: $$[$0-1]}};
+this.$ = {name: $$[$0-3], value: {kind: 'enum', values: $$[$0-1], extend: false}};
 break;
-case 7: case 9:
+case 7:
+this.$ = {name: $$[$0-3], value: {kind: 'enum', values: $$[$0-1], extend: true}};
+break;
+case 8: case 10:
 
         this.$.push($$[$0]);
     
 break;
-case 8: case 10:
+case 9: case 11:
 this.$ = [$$[$0]];
 break;
-case 11:
+case 12:
 this.$ = toProperties($$[$0-1]);
 break;
-case 12:
+case 13:
 this.$ = {name: $$[$0-3], value: $$[$0-1]};
 break;
-case 13:
+case 14:
 
       if (this.$.kind !== 'union') this.$ = {kind: 'union', types: [this.$]};
       this.$.types.push($$[$0]);
     
 break;
-case 14:
+case 15:
 this.$ = {kind: 'literal', value: $$[$0]};
 break;
-case 15:
+case 16:
 this.$ = {kind: 'reference', name: $$[$0]};
 break;
-case 16:
+case 17:
 this.$ = {kind: 'array', base: $$[$0-1]};
 break;
-case 17:
+case 18:
 this.$ = {kind: 'object', items: $$[$0]};
 break;
-case 18:
+case 19:
 this.$ = $$[$0].slice(1, -1);
 break;
-case 19:
+case 20:
 this.$ = Number($$[$0]);
 break;
-case 20:
+case 21:
 this.$ = $$[$0] === 'true';
 break;
-case 21:
+case 22:
 this.$ = null;
 break;
-case 22: case 24:
+case 23: case 25:
 this.$ = [];
 break;
-case 23: case 25:
+case 24: case 26:
 $$[$0-1].push($$[$0]);
 break;
 }
 },
-table: [o($V0,[2,22],{3:1,4:2}),{1:[3]},{5:[1,3],6:4,7:[1,5],8:[1,6],13:[1,7]},{1:[2,1]},o($V0,[2,23]),{8:[1,8]},{9:[1,9]},{9:[1,10]},{9:[1,11]},{10:13,11:[1,12],14:$V1},{14:[1,15]},{10:16,11:[1,17],14:$V1},{9:$V2,12:18},o($V0,[2,5]),o($V3,[2,24],{20:20}),{15:21,19:22,27:$V4,28:$V5,29:$V6,30:$V7},o($V0,[2,2]),{9:$V2,12:27},{10:28,14:$V1,17:$V8},o($V9,[2,8]),{9:[1,32],16:[1,30],21:31},{16:[1,33],18:[1,34]},o($Va,[2,10]),o($Vb,[2,18]),o($Vb,[2,19]),o($Vb,[2,20]),o($Vb,[2,21]),{10:35,14:$V1,17:$V8},o($V0,[2,4]),{9:[1,36]},o([5,7,8,9,13,16,18,26,31],[2,11]),o($V3,[2,25]),{22:[1,37]},o($V0,[2,6]),{19:38,27:$V4,28:$V5,29:$V6,30:$V7},o($V0,[2,3]),o($V9,[2,7]),{9:$Vc,10:43,14:$V1,19:40,23:39,25:$Vd,27:$V4,28:$V5,29:$V6,30:$V7},o($Va,[2,9]),o($V3,[2,26],{24:44,18:$Ve,31:[1,46]}),o($Vb,[2,14]),o($Vb,[2,15]),{9:$Vc,10:43,14:$V1,19:40,23:47,25:$Vd,27:$V4,28:$V5,29:$V6,30:$V7},o($Vb,[2,17]),o($V3,[2,12]),{9:$Vc,10:43,14:$V1,19:40,23:48,25:$Vd,27:$V4,28:$V5,29:$V6,30:$V7},o($V3,[2,27]),{18:$Ve,26:[1,49]},o($Vb,[2,13]),o($Vb,[2,16])],
+table: [o($V0,[2,23],{3:1,4:2}),{1:[3]},{5:[1,3],6:4,7:[1,5],8:[1,6],13:[1,7]},{1:[2,1]},o($V0,[2,24]),{8:[1,8],13:[1,9]},{9:[1,10]},{9:[1,11]},{9:[1,12]},{9:[1,13]},{10:15,11:[1,14],14:$V1},{14:[1,17]},{10:18,11:[1,19],14:$V1},{14:[1,20]},{9:$V2,12:21},o($V0,[2,5]),o($V3,[2,25],{20:23}),{15:24,19:25,27:$V4,28:$V5,29:$V6,30:$V7},o($V0,[2,2]),{9:$V2,12:30},{15:31,19:25,27:$V4,28:$V5,29:$V6,30:$V7},{10:32,14:$V1,17:$V8},o($V9,[2,9]),{9:[1,36],16:[1,34],21:35},{16:[1,37],18:$Va},o($Vb,[2,11]),o($Vc,[2,19]),o($Vc,[2,20]),o($Vc,[2,21]),o($Vc,[2,22]),{10:39,14:$V1,17:$V8},{16:[1,40],18:$Va},o($V0,[2,4]),{9:[1,41]},o([5,7,8,9,13,16,18,26,31],[2,12]),o($V3,[2,26]),{22:[1,42]},o($V0,[2,6]),{19:43,27:$V4,28:$V5,29:$V6,30:$V7},o($V0,[2,3]),o($V0,[2,7]),o($V9,[2,8]),{9:$Vd,10:48,14:$V1,19:45,23:44,25:$Ve,27:$V4,28:$V5,29:$V6,30:$V7},o($Vb,[2,10]),o($V3,[2,27],{24:49,18:$Vf,31:[1,51]}),o($Vc,[2,15]),o($Vc,[2,16]),{9:$Vd,10:48,14:$V1,19:45,23:52,25:$Ve,27:$V4,28:$V5,29:$V6,30:$V7},o($Vc,[2,18]),o($V3,[2,13]),{9:$Vd,10:48,14:$V1,19:45,23:53,25:$Ve,27:$V4,28:$V5,29:$V6,30:$V7},o($V3,[2,28]),{18:$Vf,26:[1,54]},o($Vc,[2,14]),o($Vc,[2,17])],
 defaultActions: {3:[2,1]},
 parseError: function parseError(str, hash) {
     if (hash.recoverable) {
@@ -311,7 +314,7 @@ parse: function parse(input) {
     return true;
 }};
 
-    var extendInterface = require('./spec').extendInterface;
+    var extendDefinition = require('./spec').extendDefinition;
 
     function toObject(array, resolveConflicts) {
         return array.reduce(function (obj, item) {

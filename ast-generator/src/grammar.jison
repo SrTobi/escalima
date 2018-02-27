@@ -3,7 +3,7 @@
  */
 
 %{
-    var extendInterface = require('./spec').extendInterface;
+    var extendDefinition = require('./spec').extendDefinition;
 
     function toObject(array, resolveConflicts) {
         return array.reduce(function (obj, item) {
@@ -76,8 +76,8 @@ program
     : def* EOF {
         return toObject($$, function (oldValue, newValue) {
             // Extend earlier found interface or return new one.
-            if (oldValue.kind === 'interface' && newValue.kind === 'interface' && newValue.extend) {
-                return extendInterface(oldValue, newValue)
+            if (oldValue.kind === newValue.kind && newValue.extend) {
+                return extendDefinition(oldValue, newValue)
             } else {
                 return newValue;
             }
@@ -90,7 +90,8 @@ def
     | EXTEND INTERFACE NAME '<:' names object -> intf($NAME, $object, $names, true)
     | INTERFACE NAME '<:' names object -> intf($NAME, $object, $names, false)
     | INTERFACE NAME object -> intf($NAME, $object, [], false)
-    | ENUM NAME '{' enumBody '}' -> {name: $NAME, value: {kind: 'enum', values: $enumBody}}
+    | ENUM NAME '{' enumBody '}' -> {name: $NAME, value: {kind: 'enum', values: $enumBody, extend: false}}
+    | EXTEND ENUM NAME '{' enumBody '}' -> {name: $NAME, value: {kind: 'enum', values: $enumBody, extend: true}}
     ;
 
 names

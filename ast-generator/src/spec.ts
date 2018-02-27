@@ -1,8 +1,8 @@
 export type Properties = [string, Entry][]
 
 export interface Interface {
-    extend: boolean
     kind: "interface"
+    extend: boolean
     props: Properties
     base: string[]
 }
@@ -31,6 +31,7 @@ export interface Array {
 
 export interface Enum {
     kind: "enum"
+    extend: boolean
     values: LiteralValue[]
 }
 
@@ -46,12 +47,13 @@ export interface Specification {
     [name: string]: Definition
 }
 
+function onlyUnique(value: string, index: number, self: string[]) { 
+    return self.indexOf(value) === index;
+}
+
 export function extendInterface(target: Interface, extend: Interface): Interface {
     if (!extend.extend) {
         throw new Error("Called extendInterface with interface that should replace original")
-    }
-    function onlyUnique(value: string, index: number, self: string[]) { 
-        return self.indexOf(value) === index;
     }
     
     const additionalProps = extend.props.filter(([name, entry]) => {
@@ -69,5 +71,28 @@ export function extendInterface(target: Interface, extend: Interface): Interface
         kind: "interface",
         props: target.props.concat(additionalProps).filter(b => b[1] /* filter out all removed values*/),
         base: target.base.concat(extend.base).filter(onlyUnique)
+    }
+}
+
+export function extendEnum(target: Enum, extend: Enum): Enum {
+    if (!extend.extend) {
+        throw new Error("Called extendEnum with enum that should replace original")
+    }
+    return {
+        extend: target.extend,
+        kind: "enum",
+        values: target.values.concat(extend.values).filter(onlyUnique)
+    }
+}
+
+export function extendDefinition(target: Definition, extend: Definition): Definition {
+    if (target.kind !== extend.kind) {
+        throw new Error(`Can not merge ${target.kind} and ${extend.kind}`)
+    }
+
+    if (target.kind === "interface") {
+        return extendInterface(target, extend as Interface)
+    } else {
+        return extendEnum(target, extend as Enum)
     }
 }
