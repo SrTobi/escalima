@@ -1,5 +1,5 @@
 package escalima
 
 private object ESPrimaBridgeCreator {
-    def create(): ESPrimaBridge = ???
+    def create(): ESPrimaBridge = new JSESPrimaBridge
 }

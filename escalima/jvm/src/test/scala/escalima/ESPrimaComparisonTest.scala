@@ -1,7 +1,8 @@
+package escalima
+
 import java.io.File
 
-import escalima.{ECMAScript, ESPrimaParseException}
-import org.scalatest.{FlatSpec, FreeSpec, Matchers}
+import org.scalatest.{FreeSpec, Matchers}
 import upickle.Js
 
 class ESPrimaComparisonTest extends FreeSpec with Matchers {
@@ -17,9 +18,9 @@ class ESPrimaComparisonTest extends FreeSpec with Matchers {
         case (_: Js.Num, _) =>
         case (o: Js.Obj, n: Js.Obj) =>
             n.obj.foreach {
-                case (name, value) =>
-                    if (value != Js.Null) {
-                        check(o.obj(name), value)
+                case (name, v) =>
+                    if (v != Js.Null) {
+                        check(o.obj(name), v)
                     }
             }
         case _ => fail(s"$org !== $newValue")

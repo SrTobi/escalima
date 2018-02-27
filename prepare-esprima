@@ -5,6 +5,7 @@ npm install
 npm run compile
 
 cp dist/esprima.js ../escalima/jvm/src/main/resources
+cp dist/esprima.js ../escalima/js/src/main/resources
 rm esprima/package-lock.json
 
 
