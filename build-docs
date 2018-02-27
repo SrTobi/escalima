@@ -1,0 +1,4 @@
+#!/bin/sh
+sbt doc
+mkdir -p docs
+cp -r escalima/jvm/target/scala-2.12/api/* docs
