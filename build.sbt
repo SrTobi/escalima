@@ -16,6 +16,7 @@ lazy val escalima = crossProject.
         organization := "de.srtobi",
         version := "0.1",
         isSnapshot := false,
+        scalacOptions in (Compile, doc) := Seq("-diagrams"),
         publishArtifact in Test := false,
         useGpg := true,
         licenses := Seq("MIT license" -> url("http://www.opensource.org/licenses/mit-license.php")),
