@@ -4,6 +4,7 @@ sonatypeProfileName := "de.srtobi"
 lazy val root = project.in(file(".")).
     aggregate(escalimaJVM, escalimaJS).
     settings(
+        name := "escalima",
         publishArtifact := false,
         skip in publish := true
     )
