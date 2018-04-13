@@ -1,0 +1,20 @@
+<html>
+<body>
+<script src="https://unpkg.com/esprima@~4.0/dist/esprima.js"></script>
+<script src="target/scala-2.12/downstreamtestbrowser-fastopt.js"></script>
+<script type="text/javascript">
+    {
+        var expected = '{"type":"Program","body":[{"type":"ExpressionStatement","expression":{"type":"CallExpression","callee":{"type":"Identifier","name":"call","loc":{"start":{"line":1,"column":0},"end":{"line":1,"column":4}}},"arguments":[{"type":"Literal","value":3,"raw":"3","loc":{"start":{"line":1,"column":5},"end":{"line":1,"column":6}}}],"loc":{"start":{"line":1,"column":0},"end":{"line":1,"column":7}}},"loc":{"start":{"line":1,"column":0},"end":{"line":1,"column":7}}}],"sourceType":"script","loc":{"start":{"line":1,"column":0},"end":{"line":1,"column":7}}}'
+        var out = BrowserRunTest.parse("call(3)")
+        document.write(out)
+        document.write("<br />")
+        document.write("<br />")
+        if (out === expected) {
+            document.write("<span style='color: green'>OK</span>")
+        } else {
+            document.write("<span style='color: red'>There are problems</span>")
+        }
+    }
+</script>
+</body>
+</html>

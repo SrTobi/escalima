@@ -7,7 +7,7 @@ import scala.scalajs.js.annotation.{JSImport, ScalaJSDefined}
 class ESPrimaOptions(val loc: Boolean) extends js.Object
 
 @js.native
-@JSImport("./esprima.js", JSImport.Namespace)
+@JSImport("./esprima.js", JSImport.Namespace, "esprima")
 private object ESPrima extends js.Object{
     def parseModule(source: String, options: ESPrimaOptions): js.Object = js.native
     def parseScript(source: String, options: ESPrimaOptions): js.Object = js.native
