@@ -43,18 +43,14 @@ lazy val escalima = crossProject.
                 Some("snapshots" at nexus + "content/repositories/snapshots")
             else
                 Some("releases"  at nexus + "service/local/staging/deploy/maven2")
-        }
+        },
+
+        libraryDependencies += "org.scalatest" %%% "scalatest" % "3.0.5" % Test,
+        libraryDependencies += "com.lihaoyi" %%% "upickle" % "0.6.4",
     ).
     jvmSettings(
-        libraryDependencies += "org.scalactic" %% "scalactic" % "3.0.4",
-        libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.4" % Test,
-        libraryDependencies += "com.lihaoyi" %% "upickle" % "0.5.1",
         fork in Test := true,
         baseDirectory in Test := file("."),
-    ).
-    jsSettings(
-        libraryDependencies += "org.scalatest" %%% "scalatest" % "3.0.4" % "test",
-        libraryDependencies += "com.lihaoyi" %%% "upickle" % "0.5.1",
     )
 
 lazy val escalimaJVM = escalima.jvm

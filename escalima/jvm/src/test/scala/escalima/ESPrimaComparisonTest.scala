@@ -14,7 +14,7 @@ class ESPrimaComparisonTest extends FreeSpec with Matchers {
         case (Js.True, Js.True) =>
         case (Js.False, Js.False) =>
         case (Js.Str(o), Js.Str(n)) if o == n =>
-        case (Js.Arr(o@_*), Js.Arr(n@_*)) => o.zipAll(n, null, null).foreach{ case (or, ne) => check(or, ne) }
+        case (Js.Arr(o), Js.Arr(n)) => o.zipAll(n, null, null).foreach{ case (or, ne) => check(or, ne) }
         case (_: Js.Num, _) =>
         case (o: Js.Obj, n: Js.Obj) =>
             n.obj.foreach {
