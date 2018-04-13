@@ -677,7 +677,8 @@ export function buildScalaAst(spec: Specification, options: Options): string {
             const discriminant = options.discriminant
             const discriminantEntry = Properties.get(this.props, discriminant)
 
-            const [firstWith, ...withs] = this.baseTraits.map(base => base.name).map(norm)
+            const allSupers = base? [base, ...this.baseTraits] : this.baseTraits
+            const [firstWith, ...withs] = allSupers.map(base => base.name).map(norm)
             let withExpr = firstWith? ` extends ${firstWith}` : ""
             withExpr += withs.length == 0? "" : (" with " + withs.join(" with "))
 
@@ -687,10 +688,10 @@ export function buildScalaAst(spec: Specification, options: Options): string {
                 writer.println(`sealed trait ${norm(name)}${withExpr} {`)
 
                 const innerWriter = writer.indented()
-                if (base) {
+                /*if (base) {
                     innerWriter.println(`this: ${norm(base.name)} =>`)
                     innerWriter.println()
-                }
+                }*/
                 ownParams.forEach(p => {
                     innerWriter.println(`def ${toTypedName(p)}`)
                 })

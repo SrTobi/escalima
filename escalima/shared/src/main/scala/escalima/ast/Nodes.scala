@@ -192,9 +192,7 @@ object Function {
 	}
 }
 
-sealed trait Statement extends ModuleStatement {
-	this: Node =>
-
+sealed trait Statement extends Node with ModuleStatement {
 	def toJSON: Js.Value
 }
 
@@ -743,9 +741,7 @@ object ForInStatement {
 	}
 }
 
-sealed trait Declaration extends Statement with Exportable {
-	this: Node =>
-
+sealed trait Declaration extends Node with Statement with Exportable {
 	def toJSON: Js.Value
 }
 
@@ -838,9 +834,7 @@ object VariableDeclarator {
 	}
 }
 
-sealed trait Expression extends ForInit with AssignmentTarget with SpreadableExpression with Callee with ArrowFunctionBody with Exportable {
-	this: Node =>
-
+sealed trait Expression extends Node with ForInit with AssignmentTarget with SpreadableExpression with Callee with ArrowFunctionBody with Exportable {
 	def toJSON: Js.Value
 }
 
@@ -1594,9 +1588,7 @@ object SequenceExpression {
 	}
 }
 
-sealed trait Pattern extends ForInTarget with AssignmentTarget {
-	this: Node =>
-
+sealed trait Pattern extends Node with ForInTarget with AssignmentTarget {
 	def toJSON: Js.Value
 }
 
@@ -2102,9 +2094,7 @@ object MetaProperty {
 	}
 }
 
-sealed trait ModuleDeclaration extends ModuleStatement {
-	this: Node =>
-
+sealed trait ModuleDeclaration extends Node with ModuleStatement {
 	def toJSON: Js.Value
 }
 
@@ -2475,9 +2465,7 @@ object PropertyKind {
 	}
 }
 
-sealed trait PropertyKey {
-	this: Node =>
-
+sealed trait PropertyKey extends Node {
 	def toJSON: Js.Value
 }
 
@@ -2493,9 +2481,7 @@ object PropertyKey {
 	}
 }
 
-sealed trait ForInit {
-	this: Node =>
-
+sealed trait ForInit extends Node {
 	def toJSON: Js.Value
 }
 
@@ -2533,9 +2519,7 @@ object ForInit {
 	}
 }
 
-sealed trait ForInTarget {
-	this: Node =>
-
+sealed trait ForInTarget extends Node {
 	def toJSON: Js.Value
 }
 
@@ -2552,9 +2536,7 @@ object ForInTarget {
 	}
 }
 
-sealed trait AssignmentTarget {
-	this: Node =>
-
+sealed trait AssignmentTarget extends Node {
 	def toJSON: Js.Value
 }
 
@@ -2595,9 +2577,7 @@ object AssignmentTarget {
 	}
 }
 
-sealed trait ModuleStatement {
-	this: Node =>
-
+sealed trait ModuleStatement extends Node {
 	def toJSON: Js.Value
 }
 
@@ -2661,9 +2641,7 @@ object VariableDeclarationKind {
 	}
 }
 
-sealed trait SpreadableExpression {
-	this: Node =>
-
+sealed trait SpreadableExpression extends Node {
 	def toJSON: Js.Value
 }
 
@@ -2701,9 +2679,7 @@ object SpreadableExpression {
 	}
 }
 
-sealed trait Callee {
-	this: Node =>
-
+sealed trait Callee extends Node {
 	def toJSON: Js.Value
 }
 
@@ -2741,9 +2717,7 @@ object Callee {
 	}
 }
 
-sealed trait ArrowFunctionBody {
-	this: Node =>
-
+sealed trait ArrowFunctionBody extends Node {
 	def toJSON: Js.Value
 }
 
@@ -2815,9 +2789,7 @@ object MethodKind {
 	}
 }
 
-sealed trait ModuleImportSpecifier {
-	this: ModuleSpecifier =>
-
+sealed trait ModuleImportSpecifier extends ModuleSpecifier {
 	def toJSON: Js.Value
 }
 
@@ -2830,9 +2802,7 @@ object ModuleImportSpecifier {
 	}
 }
 
-sealed trait Exportable {
-	this: Node =>
-
+sealed trait Exportable extends Node {
 	def toJSON: Js.Value
 }
 
