@@ -22,7 +22,7 @@ lazy val escalima = crossProject
     .settings(
         name := "escalima",
         organization := "de.srtobi",
-        version := "0.1",
+        version := "0.2",
         isSnapshot := false,
         scalacOptions in (Compile, doc) := Seq("-diagrams"),
         publishArtifact in Test := false,
@@ -64,7 +64,9 @@ lazy val predef = project
     .in(file("predef"))
     .dependsOn(escalimaJVM)
     .settings(commonSettings)
-    .settings()
+    .settings(
+        skip in publish := true
+    )
 
 
 lazy val downStreamTestJVM = project
@@ -72,7 +74,8 @@ lazy val downStreamTestJVM = project
     .dependsOn(escalimaJVM)
     .settings(commonSettings)
     .settings(
-        fork in Test := true
+        fork in Test := true,
+        skip in publish := true
     )
 
 lazy val downStreamTestBrowser = project
@@ -82,6 +85,7 @@ lazy val downStreamTestBrowser = project
     .dependsOn(escalimaJS)
     .settings(commonSettings)
     .settings(
+        skip in publish := true
     )
 
 lazy val downStreamTestNode = project
@@ -91,4 +95,5 @@ lazy val downStreamTestNode = project
     .settings(commonSettings)
     .dependsOn(escalimaJS)
     .settings(
+        skip in publish := true
     )
