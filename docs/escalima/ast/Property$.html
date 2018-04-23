@@ -394,10 +394,6 @@
                         <a class="class" href="Property.html" title=""></a>
                         <a href="Property.html" title="">Property</a>
                       </li><li class="current-entities indented2">
-                        <a class="object" href="PropertyKey$.html" title=""></a>
-                        <a class="trait" href="PropertyKey.html" title=""></a>
-                        <a href="PropertyKey.html" title="">PropertyKey</a>
-                      </li><li class="current-entities indented2">
                         <a class="object" href="PropertyKind$.html" title=""></a>
                         <a class="class" href="PropertyKind.html" title=""></a>
                         <a href="PropertyKind.html" title="">PropertyKind</a>
@@ -665,9 +661,9 @@
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
     </li><li name="escalima.ast.Property#apply" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="apply(key:escalima.ast.PropertyKey,value:escalima.ast.Expression,kind:escalima.ast.PropertyKind,method:Boolean,shorthand:Boolean,computed:Boolean,loc:Option[escalima.ast.SourceLocation]):escalima.ast.Property"></a><a id="apply(PropertyKey,Expression,PropertyKind,Boolean,Boolean,Boolean,Option[SourceLocation]):Property"></a>
+      <a id="apply(key:escalima.ast.Expression,value:escalima.ast.Expression,kind:escalima.ast.PropertyKind,method:Boolean,shorthand:Boolean,computed:Boolean,loc:Option[escalima.ast.SourceLocation]):escalima.ast.Property"></a><a id="apply(Expression,Expression,PropertyKind,Boolean,Boolean,Boolean,Option[SourceLocation]):Property"></a>
       <span class="permalink">
-      <a href="../../escalima/ast/Property$.html#apply(key:escalima.ast.PropertyKey,value:escalima.ast.Expression,kind:escalima.ast.PropertyKind,method:Boolean,shorthand:Boolean,computed:Boolean,loc:Option[escalima.ast.SourceLocation]):escalima.ast.Property" title="Permalink">
+      <a href="../../escalima/ast/Property$.html#apply(key:escalima.ast.Expression,value:escalima.ast.Expression,kind:escalima.ast.PropertyKind,method:Boolean,shorthand:Boolean,computed:Boolean,loc:Option[escalima.ast.SourceLocation]):escalima.ast.Property" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -676,7 +672,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">apply</span><span class="params">(<span name="key">key: <a href="PropertyKey.html" class="extype" name="escalima.ast.PropertyKey">PropertyKey</a></span>, <span name="value">value: <a href="Expression.html" class="extype" name="escalima.ast.Expression">Expression</a></span>, <span name="kind">kind: <a href="PropertyKind.html" class="extype" name="escalima.ast.PropertyKind">PropertyKind</a></span>, <span name="method">method: <span class="extype" name="scala.Boolean">Boolean</span></span>, <span name="shorthand">shorthand: <span class="extype" name="scala.Boolean">Boolean</span></span>, <span name="computed">computed: <span class="extype" name="scala.Boolean">Boolean</span></span>, <span name="loc">loc: <span class="extype" name="scala.Option">Option</span>[<a href="SourceLocation.html" class="extype" name="escalima.ast.SourceLocation">SourceLocation</a>]</span>)</span><span class="result">: <a href="Property.html" class="extype" name="escalima.ast.Property">Property</a></span>
+        <span class="name">apply</span><span class="params">(<span name="key">key: <a href="Expression.html" class="extype" name="escalima.ast.Expression">Expression</a></span>, <span name="value">value: <a href="Expression.html" class="extype" name="escalima.ast.Expression">Expression</a></span>, <span name="kind">kind: <a href="PropertyKind.html" class="extype" name="escalima.ast.PropertyKind">PropertyKind</a></span>, <span name="method">method: <span class="extype" name="scala.Boolean">Boolean</span></span>, <span name="shorthand">shorthand: <span class="extype" name="scala.Boolean">Boolean</span></span>, <span name="computed">computed: <span class="extype" name="scala.Boolean">Boolean</span></span>, <span name="loc">loc: <span class="extype" name="scala.Option">Option</span>[<a href="SourceLocation.html" class="extype" name="escalima.ast.SourceLocation">SourceLocation</a>]</span>)</span><span class="result">: <a href="Property.html" class="extype" name="escalima.ast.Property">Property</a></span>
       </span>
       
       
@@ -775,7 +771,7 @@
               
         </dd></dl></div>
     </li><li name="escalima.ast.Property#from" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="from(src:upickle.Js.Value):escalima.ast.Property"></a><a id="from(upickle.Js.Value):Property"></a>
+      <a id="from(src:upickle.Js.Value):escalima.ast.Property"></a><a id="from(ujson.Js.Value):Property"></a>
       <span class="permalink">
       <a href="../../escalima/ast/Property$.html#from(src:upickle.Js.Value):escalima.ast.Property" title="Permalink">
         <i class="material-icons"></i>
@@ -786,7 +782,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">from</span><span class="params">(<span name="src">src: <span class="extype" name="upickle.Js.Value">upickle.Js.Value</span></span>)</span><span class="result">: <a href="Property.html" class="extype" name="escalima.ast.Property">Property</a></span>
+        <span class="name">from</span><span class="params">(<span name="src">src: <span class="extype" name="ujson.Js.Value">ujson.Js.Value</span></span>)</span><span class="result">: <a href="Property.html" class="extype" name="escalima.ast.Property">Property</a></span>
       </span>
       
       
@@ -931,9 +927,9 @@
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
     </li><li name="escalima.ast.Property#unapply" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="unapply(property:escalima.ast.Property):Option[(escalima.ast.PropertyKey,escalima.ast.Expression,escalima.ast.PropertyKind,Boolean,Boolean,Boolean)]"></a><a id="unapply(Property):Option[(PropertyKey,Expression,PropertyKind,Boolean,Boolean,Boolean)]"></a>
+      <a id="unapply(property:escalima.ast.Property):Option[(escalima.ast.Expression,escalima.ast.Expression,escalima.ast.PropertyKind,Boolean,Boolean,Boolean)]"></a><a id="unapply(Property):Option[(Expression,Expression,PropertyKind,Boolean,Boolean,Boolean)]"></a>
       <span class="permalink">
-      <a href="../../escalima/ast/Property$.html#unapply(property:escalima.ast.Property):Option[(escalima.ast.PropertyKey,escalima.ast.Expression,escalima.ast.PropertyKind,Boolean,Boolean,Boolean)]" title="Permalink">
+      <a href="../../escalima/ast/Property$.html#unapply(property:escalima.ast.Property):Option[(escalima.ast.Expression,escalima.ast.Expression,escalima.ast.PropertyKind,Boolean,Boolean,Boolean)]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -942,7 +938,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">unapply</span><span class="params">(<span name="property">property: <a href="Property.html" class="extype" name="escalima.ast.Property">Property</a></span>)</span><span class="result">: <span class="extype" name="scala.Option">Option</span>[(<a href="PropertyKey.html" class="extype" name="escalima.ast.PropertyKey">PropertyKey</a>, <a href="Expression.html" class="extype" name="escalima.ast.Expression">Expression</a>, <a href="PropertyKind.html" class="extype" name="escalima.ast.PropertyKind">PropertyKind</a>, <span class="extype" name="scala.Boolean">Boolean</span>, <span class="extype" name="scala.Boolean">Boolean</span>, <span class="extype" name="scala.Boolean">Boolean</span>)]</span>
+        <span class="name">unapply</span><span class="params">(<span name="property">property: <a href="Property.html" class="extype" name="escalima.ast.Property">Property</a></span>)</span><span class="result">: <span class="extype" name="scala.Option">Option</span>[(<a href="Expression.html" class="extype" name="escalima.ast.Expression">Expression</a>, <a href="Expression.html" class="extype" name="escalima.ast.Expression">Expression</a>, <a href="PropertyKind.html" class="extype" name="escalima.ast.PropertyKind">PropertyKind</a>, <span class="extype" name="scala.Boolean">Boolean</span>, <span class="extype" name="scala.Boolean">Boolean</span>, <span class="extype" name="scala.Boolean">Boolean</span>)]</span>
       </span>
       
       
