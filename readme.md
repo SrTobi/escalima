@@ -83,6 +83,59 @@ Instead of an ast Escalima can also just return a json string which is equivalen
 }
 ```
 
+## Getting started
+
+Just add the following to your SBT config:
+
+```sbt
+libraryDependencies += "de.srtobi" %% "escalima" % "0.3"
+```
+
+Because it uses the `javax.script.ScriptManager` you have to add the following setting for all JVM projects if you want to use it with `sbt test`
+
+```sbt
+fork in Test := true
+```
+
+### ScalaJS
+
+If you have a pure ScalaJS project or a cross project add the following to your SBT config:
+
+```sbt
+libraryDependencies += "de.srtobi" %%% "escalima" % "0.3"
+```
+
+If you are using escalima in a JavaScript environment, escalima needs access to the esprima api.
+Depending on your environment there are two ways to import it.
+
+### Escalima with ScalaJS on Node
+
+In this settings esprima can be compiled into the dependencies by using the sbt bundler plugin.
+
+Add the following to `project/plugin.sbt`:
+
+```sbt
+addSbtPlugin("ch.epfl.scala" % "sbt-scalajs-bundler" % "0.10.0")
+```
+
+And then activate the plugin on your project
+
+```sbt
+(proj)
+    .enablePlugins(ScalaJSPlugin)
+    .enablePlugins(ScalaJSBundlerPlugin)
+```
+
+### Escalima with ScalaJS in a browser
+
+In a browser environment just import esprima directly in html
+
+```html
+<script src="https://unpkg.com/esprima@~4.0/dist/esprima.js"></script>
+```
+
+This will add esprima as a global object where it can be found by escalima.
+
 
 ## How it works
 
