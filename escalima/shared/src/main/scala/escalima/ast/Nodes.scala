@@ -55,7 +55,7 @@ object Position {
 	}
 }
 
-sealed class Identifier(val name: String, loc: Option[SourceLocation]) extends Node(loc) with Expression with Pattern with PropertyKey {
+sealed class Identifier(val name: String, loc: Option[SourceLocation]) extends Node(loc) with Expression with Pattern {
 	override def toJSON: Js.Value = Js.Obj(
 			"type" -> Js.Str("Identifier"),
 			"name" -> Js.Str(this.name),
@@ -78,7 +78,7 @@ object Identifier {
 	}
 }
 
-sealed abstract class Literal(val raw: String, loc: Option[SourceLocation]) extends Node(loc) with Expression with PropertyKey {
+sealed abstract class Literal(val raw: String, loc: Option[SourceLocation]) extends Node(loc) with Expression {
 	def toJSON: Js.Value
 }
 
@@ -937,7 +937,7 @@ object ObjectExpression {
 	}
 }
 
-sealed class Property(val key: PropertyKey, val value: Expression, val kind: PropertyKind, val method: Boolean, val shorthand: Boolean, val computed: Boolean, loc: Option[SourceLocation]) extends Node(loc) with SpreadableProperty {
+sealed class Property(val key: Expression, val value: Expression, val kind: PropertyKind, val method: Boolean, val shorthand: Boolean, val computed: Boolean, loc: Option[SourceLocation]) extends Node(loc) with SpreadableProperty {
 	override def toJSON: Js.Value = Js.Obj(
 			"type" -> Js.Str("Property"),
 			"key" -> this.key.toJSON,
@@ -951,15 +951,15 @@ sealed class Property(val key: PropertyKey, val value: Expression, val kind: Pro
 }
 
 object Property {
-	def apply(key: PropertyKey, value: Expression, kind: PropertyKind, method: Boolean, shorthand: Boolean, computed: Boolean, loc: Option[SourceLocation]): Property = new Property(key, value, kind, method, shorthand, computed, loc)
-	def unapply(property: Property): Option[(PropertyKey, Expression, PropertyKind, Boolean, Boolean, Boolean)] = Some((property.key, property.value, property.kind, property.method, property.shorthand, property.computed))
+	def apply(key: Expression, value: Expression, kind: PropertyKind, method: Boolean, shorthand: Boolean, computed: Boolean, loc: Option[SourceLocation]): Property = new Property(key, value, kind, method, shorthand, computed, loc)
+	def unapply(property: Property): Option[(Expression, Expression, PropertyKind, Boolean, Boolean, Boolean)] = Some((property.key, property.value, property.kind, property.method, property.shorthand, property.computed))
 
 	def from(src: Js.Value): Property = {
 		val _obj = src.obj
 		assert(_obj("type").str == "Property")
 
 		new Property(
-			PropertyKey.from(_obj("key")),
+			Expression.from(_obj("key")),
 			Expression.from(_obj("value")),
 			PropertyKind.from(_obj("kind")),
 			_obj("method").isInstanceOf[Js.True.type],
@@ -2462,22 +2462,6 @@ object PropertyKind {
 		case "init" => `init`
 		case "get" => `get`
 		case "set" => `set`
-	}
-}
-
-sealed trait PropertyKey extends Node {
-	def toJSON: Js.Value
-}
-
-object PropertyKey {
-	def from(src: Js.Value): PropertyKey = src("type").str match {
-		case "Identifier" => Identifier.from(src)
-		case "Literal" if src.obj.contains("regex") => RegExpLiteral.from(src)
-		case "Literal" if src.obj("value").isInstanceOf[Js.True.type] || src.obj("value").isInstanceOf[Js.False.type] => BooleanLiteral.from(src)
-		case "Literal" if src.obj("value").isInstanceOf[Js.Num] => NumberLiteral.from(src)
-		case "Literal" if src.obj("value").isInstanceOf[Js.Str] && !src.obj.contains("regex") => StringLiteral.from(src)
-		case "Literal" if src.obj("value").isInstanceOf[Js.Null.type] => NullLiteral.from(src)
-		case discriminant => throw new IllegalArgumentException(s"Unknown type '$discriminant' for PropertyKey")
 	}
 }
 

@@ -105,15 +105,16 @@ enum PropertyKind {
 Resolve the union type between `Literal`, `Identifier` and `null` in `key`.
 
 ```js
+// this is not needed because it is overwritten by es2015
 
-interface PropertyKey <: Node {}
+/*interface PropertyKey <: Node {}
 
 extend interface Literal <: PropertyKey {}
 extend interface Identifier <: PropertyKey {}
 
 extend interface Property {
     key: PropertyKey
-}
+}*/
 ```
 
 ## ForStatement Init
