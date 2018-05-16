@@ -1004,8 +1004,8 @@ export function buildScalaAst(spec: Specification, options: Options): string {
         {
             name: "boolean",
             native: "Boolean",
-            fromExpr: (src: string) => `${src}.isInstanceOf[Js.True.type]`,
-            toExpr: (self: string) => `(if (${self}) Js.True else Js.False)`
+            fromExpr: (src: string) => `${src}.bool`,
+            toExpr: (self: string) => `Js.Bool(${self})`
         }
     ]
     for (const {name, native, fromExpr, toExpr} of nativeTypes) {

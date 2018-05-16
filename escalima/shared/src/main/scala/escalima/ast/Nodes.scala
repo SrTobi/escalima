@@ -168,8 +168,8 @@ sealed class Function(val id: Option[Identifier], val params: Seq[Pattern], val 
 			"id" -> this.id.map(inner => inner.toJSON).getOrElse(Js.Null),
 			"params" -> Js.Arr(this.params.map(inner => inner.toJSON): _*),
 			"body" -> this.body.toJSON,
-			"generator" -> (if (this.generator) Js.True else Js.False),
-			"async" -> (if (this.async) Js.True else Js.False),
+			"generator" -> Js.Bool(this.generator),
+			"async" -> Js.Bool(this.async),
 			"loc" -> this.loc.map(inner => inner.toJSON).getOrElse(Js.Null)
 		)
 }
@@ -185,8 +185,8 @@ object Function {
 			_obj.get("id").flatMap(_ match { case Js.Null => None; case some => Some(some)}).map(inner => Identifier.from(inner)),
 			_obj("params").arr.map(elem => Pattern.from(elem)),
 			FunctionBody.from(_obj("body")),
-			_obj("generator").isInstanceOf[Js.True.type],
-			_obj("async").isInstanceOf[Js.True.type],
+			_obj("generator").bool,
+			_obj("async").bool,
 			_obj.get("loc").flatMap(_ match { case Js.Null => None; case some => Some(some)}).map(inner => SourceLocation.from(inner))
 		)
 	}
@@ -760,8 +760,8 @@ sealed class FunctionDeclaration(id: Option[Identifier], params: Seq[Pattern], b
 			"id" -> this.id.map(inner => inner.toJSON).getOrElse(Js.Null),
 			"params" -> Js.Arr(this.params.map(inner => inner.toJSON): _*),
 			"body" -> this.body.toJSON,
-			"generator" -> (if (this.generator) Js.True else Js.False),
-			"async" -> (if (this.async) Js.True else Js.False),
+			"generator" -> Js.Bool(this.generator),
+			"async" -> Js.Bool(this.async),
 			"loc" -> this.loc.map(inner => inner.toJSON).getOrElse(Js.Null)
 		)
 }
@@ -777,8 +777,8 @@ object FunctionDeclaration {
 			_obj.get("id").flatMap(_ match { case Js.Null => None; case some => Some(some)}).map(inner => Identifier.from(inner)),
 			_obj("params").arr.map(elem => Pattern.from(elem)),
 			FunctionBody.from(_obj("body")),
-			_obj("generator").isInstanceOf[Js.True.type],
-			_obj("async").isInstanceOf[Js.True.type],
+			_obj("generator").bool,
+			_obj("async").bool,
 			_obj.get("loc").flatMap(_ match { case Js.Null => None; case some => Some(some)}).map(inner => SourceLocation.from(inner))
 		)
 	}
@@ -943,9 +943,9 @@ sealed class Property(val key: Expression, val value: Expression, val kind: Prop
 			"key" -> this.key.toJSON,
 			"value" -> this.value.toJSON,
 			"kind" -> this.kind.toJSON,
-			"method" -> (if (this.method) Js.True else Js.False),
-			"shorthand" -> (if (this.shorthand) Js.True else Js.False),
-			"computed" -> (if (this.computed) Js.True else Js.False),
+			"method" -> Js.Bool(this.method),
+			"shorthand" -> Js.Bool(this.shorthand),
+			"computed" -> Js.Bool(this.computed),
 			"loc" -> this.loc.map(inner => inner.toJSON).getOrElse(Js.Null)
 		)
 }
@@ -962,9 +962,9 @@ object Property {
 			Expression.from(_obj("key")),
 			Expression.from(_obj("value")),
 			PropertyKind.from(_obj("kind")),
-			_obj("method").isInstanceOf[Js.True.type],
-			_obj("shorthand").isInstanceOf[Js.True.type],
-			_obj("computed").isInstanceOf[Js.True.type],
+			_obj("method").bool,
+			_obj("shorthand").bool,
+			_obj("computed").bool,
 			_obj.get("loc").flatMap(_ match { case Js.Null => None; case some => Some(some)}).map(inner => SourceLocation.from(inner))
 		)
 	}
@@ -976,8 +976,8 @@ sealed class FunctionExpression(id: Option[Identifier], params: Seq[Pattern], bo
 			"id" -> this.id.map(inner => inner.toJSON).getOrElse(Js.Null),
 			"params" -> Js.Arr(this.params.map(inner => inner.toJSON): _*),
 			"body" -> this.body.toJSON,
-			"generator" -> (if (this.generator) Js.True else Js.False),
-			"async" -> (if (this.async) Js.True else Js.False),
+			"generator" -> Js.Bool(this.generator),
+			"async" -> Js.Bool(this.async),
 			"loc" -> this.loc.map(inner => inner.toJSON).getOrElse(Js.Null)
 		)
 }
@@ -993,8 +993,8 @@ object FunctionExpression {
 			_obj.get("id").flatMap(_ match { case Js.Null => None; case some => Some(some)}).map(inner => Identifier.from(inner)),
 			_obj("params").arr.map(elem => Pattern.from(elem)),
 			FunctionBody.from(_obj("body")),
-			_obj("generator").isInstanceOf[Js.True.type],
-			_obj("async").isInstanceOf[Js.True.type],
+			_obj("generator").bool,
+			_obj("async").bool,
 			_obj.get("loc").flatMap(_ match { case Js.Null => None; case some => Some(some)}).map(inner => SourceLocation.from(inner))
 		)
 	}
@@ -1004,7 +1004,7 @@ sealed class UnaryExpression(val operator: UnaryOperator, val prefix: Boolean, v
 	override def toJSON: Js.Value = Js.Obj(
 			"type" -> Js.Str("UnaryExpression"),
 			"operator" -> this.operator.toJSON,
-			"prefix" -> (if (this.prefix) Js.True else Js.False),
+			"prefix" -> Js.Bool(this.prefix),
 			"argument" -> this.argument.toJSON,
 			"loc" -> this.loc.map(inner => inner.toJSON).getOrElse(Js.Null)
 		)
@@ -1020,7 +1020,7 @@ object UnaryExpression {
 
 		new UnaryExpression(
 			UnaryOperator.from(_obj("operator")),
-			_obj("prefix").isInstanceOf[Js.True.type],
+			_obj("prefix").bool,
 			Expression.from(_obj("argument")),
 			_obj.get("loc").flatMap(_ match { case Js.Null => None; case some => Some(some)}).map(inner => SourceLocation.from(inner))
 		)
@@ -1084,7 +1084,7 @@ sealed class UpdateExpression(val operator: UpdateOperator, val argument: Expres
 			"type" -> Js.Str("UpdateExpression"),
 			"operator" -> this.operator.toJSON,
 			"argument" -> this.argument.toJSON,
-			"prefix" -> (if (this.prefix) Js.True else Js.False),
+			"prefix" -> Js.Bool(this.prefix),
 			"loc" -> this.loc.map(inner => inner.toJSON).getOrElse(Js.Null)
 		)
 }
@@ -1100,7 +1100,7 @@ object UpdateExpression {
 		new UpdateExpression(
 			UpdateOperator.from(_obj("operator")),
 			Expression.from(_obj("argument")),
-			_obj("prefix").isInstanceOf[Js.True.type],
+			_obj("prefix").bool,
 			_obj.get("loc").flatMap(_ match { case Js.Null => None; case some => Some(some)}).map(inner => SourceLocation.from(inner))
 		)
 	}
@@ -1466,7 +1466,7 @@ sealed class MemberExpression(val obj: Callee, val property: Expression, val com
 			"type" -> Js.Str("MemberExpression"),
 			"object" -> this.obj.toJSON,
 			"property" -> this.property.toJSON,
-			"computed" -> (if (this.computed) Js.True else Js.False),
+			"computed" -> Js.Bool(this.computed),
 			"loc" -> this.loc.map(inner => inner.toJSON).getOrElse(Js.Null)
 		)
 }
@@ -1482,7 +1482,7 @@ object MemberExpression {
 		new MemberExpression(
 			Callee.from(_obj("object")),
 			Expression.from(_obj("property")),
-			_obj("computed").isInstanceOf[Js.True.type],
+			_obj("computed").bool,
 			_obj.get("loc").flatMap(_ match { case Js.Null => None; case some => Some(some)}).map(inner => SourceLocation.from(inner))
 		)
 	}
@@ -1704,7 +1704,7 @@ sealed class YieldExpression(val argument: Option[Expression], val delegate: Boo
 	override def toJSON: Js.Value = Js.Obj(
 			"type" -> Js.Str("YieldExpression"),
 			"argument" -> this.argument.map(inner => inner.toJSON).getOrElse(Js.Null),
-			"delegate" -> (if (this.delegate) Js.True else Js.False),
+			"delegate" -> Js.Bool(this.delegate),
 			"loc" -> this.loc.map(inner => inner.toJSON).getOrElse(Js.Null)
 		)
 }
@@ -1719,7 +1719,7 @@ object YieldExpression {
 
 		new YieldExpression(
 			_obj.get("argument").flatMap(_ match { case Js.Null => None; case some => Some(some)}).map(inner => Expression.from(inner)),
-			_obj("delegate").isInstanceOf[Js.True.type],
+			_obj("delegate").bool,
 			_obj.get("loc").flatMap(_ match { case Js.Null => None; case some => Some(some)}).map(inner => SourceLocation.from(inner))
 		)
 	}
@@ -1799,7 +1799,7 @@ object Value {
 sealed class TemplateElement(val tail: Boolean, val value: Value, loc: Option[SourceLocation]) extends Node(loc) {
 	override def toJSON: Js.Value = Js.Obj(
 			"type" -> Js.Str("TemplateElement"),
-			"tail" -> (if (this.tail) Js.True else Js.False),
+			"tail" -> Js.Bool(this.tail),
 			"value" -> this.value.toJSON,
 			"loc" -> this.loc.map(inner => inner.toJSON).getOrElse(Js.Null)
 		)
@@ -1814,7 +1814,7 @@ object TemplateElement {
 		assert(_obj("type").str == "TemplateElement")
 
 		new TemplateElement(
-			_obj("tail").isInstanceOf[Js.True.type],
+			_obj("tail").bool,
 			Value.from(_obj("value")),
 			_obj.get("loc").flatMap(_ match { case Js.Null => None; case some => Some(some)}).map(inner => SourceLocation.from(inner))
 		)
@@ -1992,8 +1992,8 @@ sealed class MethodDefinition(val key: Expression, val value: FunctionExpression
 			"key" -> this.key.toJSON,
 			"value" -> this.value.toJSON,
 			"kind" -> this.kind.toJSON,
-			"computed" -> (if (this.computed) Js.True else Js.False),
-			"static" -> (if (this.static) Js.True else Js.False),
+			"computed" -> Js.Bool(this.computed),
+			"static" -> Js.Bool(this.static),
 			"loc" -> this.loc.map(inner => inner.toJSON).getOrElse(Js.Null)
 		)
 }
@@ -2010,8 +2010,8 @@ object MethodDefinition {
 			Expression.from(_obj("key")),
 			FunctionExpression.from(_obj("value")),
 			MethodKind.from(_obj("kind")),
-			_obj("computed").isInstanceOf[Js.True.type],
-			_obj("static").isInstanceOf[Js.True.type],
+			_obj("computed").bool,
+			_obj("static").bool,
 			_obj.get("loc").flatMap(_ match { case Js.Null => None; case some => Some(some)}).map(inner => SourceLocation.from(inner))
 		)
 	}
@@ -2342,7 +2342,7 @@ object AwaitExpression {
 sealed class BooleanLiteral(val value: Boolean, raw: String, loc: Option[SourceLocation]) extends Literal(raw, loc) {
 	override def toJSON: Js.Value = Js.Obj(
 			"type" -> Js.Str("Literal"),
-			"value" -> (if (this.value) Js.True else Js.False),
+			"value" -> Js.Bool(this.value),
 			"raw" -> Js.Str(this.raw),
 			"loc" -> this.loc.map(inner => inner.toJSON).getOrElse(Js.Null)
 		)
@@ -2358,7 +2358,7 @@ object BooleanLiteral {
 		assert(_obj("value").isInstanceOf[Js.True.type] || _obj("value").isInstanceOf[Js.False.type])
 
 		new BooleanLiteral(
-			_obj("value").isInstanceOf[Js.True.type],
+			_obj("value").bool,
 			_obj("raw").str.toString,
 			_obj.get("loc").flatMap(_ match { case Js.Null => None; case some => Some(some)}).map(inner => SourceLocation.from(inner))
 		)

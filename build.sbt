@@ -3,7 +3,7 @@ sonatypeProfileName := "de.srtobi"
 
 lazy val commonSettings = Seq(
     libraryDependencies += "org.scalatest" %%% "scalatest" % "3.0.5" % Test,
-    libraryDependencies += "com.lihaoyi" %%% "upickle" % "0.6.4",
+    libraryDependencies += "com.lihaoyi" %%% "upickle" % "0.6.6",
 )
 
 
