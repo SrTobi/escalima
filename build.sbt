@@ -22,7 +22,7 @@ lazy val escalima = crossProject
     .settings(
         name := "escalima",
         organization := "de.srtobi",
-        version := "0.3",
+        version := "0.4",
         isSnapshot := false,
         scalacOptions in (Compile, doc) := Seq("-diagrams"),
         publishArtifact in Test := false,
