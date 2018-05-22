@@ -92,6 +92,7 @@ interface ArrowFunctionExpression <: Expression {
     id: Identifier | null;
     params: [ Pattern ];
     body: ArrowFunctionBody
+    async: boolean
 }
 ```
 

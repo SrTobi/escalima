@@ -1673,19 +1673,20 @@ object SpreadElement {
 	}
 }
 
-sealed class ArrowFunctionExpression(val id: Option[Identifier], val params: Seq[Pattern], val body: ArrowFunctionBody, loc: Option[SourceLocation]) extends Node(loc) with Expression {
+sealed class ArrowFunctionExpression(val id: Option[Identifier], val params: Seq[Pattern], val body: ArrowFunctionBody, val async: Boolean, loc: Option[SourceLocation]) extends Node(loc) with Expression {
 	override def toJSON: Js.Value = Js.Obj(
 			"type" -> Js.Str("ArrowFunctionExpression"),
 			"id" -> this.id.map(inner => inner.toJSON).getOrElse(Js.Null),
 			"params" -> Js.Arr(this.params.map(inner => inner.toJSON): _*),
 			"body" -> this.body.toJSON,
+			"async" -> Js.Bool(this.async),
 			"loc" -> this.loc.map(inner => inner.toJSON).getOrElse(Js.Null)
 		)
 }
 
 object ArrowFunctionExpression {
-	def apply(id: Option[Identifier], params: Seq[Pattern], body: ArrowFunctionBody, loc: Option[SourceLocation]): ArrowFunctionExpression = new ArrowFunctionExpression(id, params, body, loc)
-	def unapply(arrowFunctionExpression: ArrowFunctionExpression): Option[(Option[Identifier], Seq[Pattern], ArrowFunctionBody)] = Some((arrowFunctionExpression.id, arrowFunctionExpression.params, arrowFunctionExpression.body))
+	def apply(id: Option[Identifier], params: Seq[Pattern], body: ArrowFunctionBody, async: Boolean, loc: Option[SourceLocation]): ArrowFunctionExpression = new ArrowFunctionExpression(id, params, body, async, loc)
+	def unapply(arrowFunctionExpression: ArrowFunctionExpression): Option[(Option[Identifier], Seq[Pattern], ArrowFunctionBody, Boolean)] = Some((arrowFunctionExpression.id, arrowFunctionExpression.params, arrowFunctionExpression.body, arrowFunctionExpression.async))
 
 	def from(src: Js.Value): ArrowFunctionExpression = {
 		val _obj = src.obj
@@ -1695,6 +1696,7 @@ object ArrowFunctionExpression {
 			_obj.get("id").flatMap(_ match { case Js.Null => None; case some => Some(some)}).map(inner => Identifier.from(inner)),
 			_obj("params").arr.map(elem => Pattern.from(elem)),
 			ArrowFunctionBody.from(_obj("body")),
+			_obj("async").bool,
 			_obj.get("loc").flatMap(_ match { case Js.Null => None; case some => Some(some)}).map(inner => SourceLocation.from(inner))
 		)
 	}
